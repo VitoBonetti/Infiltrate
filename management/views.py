@@ -1002,6 +1002,7 @@ class AssetListView(ManagementAccessMixin, View):
 
         total_assets = queryset.count()
         total_kpi_assets = queryset.filter(is_kpi=True).count()
+        total_queue_assets = queryset.filter(is_pentest_queue=True).count()
 
         context = {
             'page_obj': page_obj,
@@ -1011,6 +1012,7 @@ class AssetListView(ManagementAccessMixin, View):
             'sort_by': sort_by,
             'total_assets': total_assets,
             'total_kpi_assets': total_kpi_assets,
+            'total_queue_assets': total_queue_assets,
             'total_count': queryset.count(),
             'can_write': admin_can_write(request.user),
             'can_delete': admin_can_delete(request.user),

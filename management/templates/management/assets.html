@@ -26,7 +26,7 @@
         </div>
         <div class="row mb-4">
             <div class="col"></div>
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <div class="card shadow border-0 border-start border-dark border-5 management-home-card-bg">
                     <div class="card-body">
                         <div class="h5 mb-1">Total Asset</div>
@@ -34,11 +34,19 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <div class="card shadow border-0 border-start border-warning border-5 management-home-card-bg">
                     <div class="card-body">
                         <div class="h5 mb-1">Total KPI Asset <i class="bi bi-stars text-warning"></i></div>
                         <div class="fs-2 mb-0 fw-bold">{{ total_kpi_assets }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="card shadow border-0 border-start border-danger border-5 management-home-card-bg">
+                    <div class="card-body">
+                        <div class="h5 mb-1">Total Asset in Pentest Queue </div>
+                        <div class="fs-2 mb-0 fw-bold">{{ total_queue_assets }}</div>
                     </div>
                 </div>
             </div>
