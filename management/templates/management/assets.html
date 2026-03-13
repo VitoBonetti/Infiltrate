@@ -103,6 +103,7 @@
                                     <th class="custom-card-header">Organization</th>
                                     <th class="custom-card-header">Type</th>
                                     <th class="custom-card-header">Status</th>
+                                    <th class="custom-card-header">Queue</th>
                                     <th class="text-end pe-3 custom-card-header">Actions</th>
                                 </tr>
                             </thead>
@@ -132,6 +133,13 @@
                                                 <span class="badge bg-secondary rounded-pill">Archived</span>
                                             {% else %}
                                                 <span class="badge bg-dark border border-secondary text-light">{{ a.asset_status|default:"Unknown" }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {%  if a.is_pentest_queue %}
+                                                <i class="bi bi-check-circle-fill text-success"></i>
+                                            {% else %}
+                                                <i class="bi bi-x-circle-fill text-danger"></i>
                                             {% endif %}
                                         </td>
                                         <td class="text-end pe-3">

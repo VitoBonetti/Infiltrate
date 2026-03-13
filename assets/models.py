@@ -65,7 +65,7 @@ class Asset(models.Model):
         ('SaaS', 'SaaS'),
         ('IaaS', 'IaaS'),
         ('PaaS', 'PaaS'),
-        ('None of above', 'None of above'),
+        ('None of the above', 'None of the above'),
     ]
 
     uuid = models.UUIDField(default=_uuid.uuid4, editable=False, unique=True, primary_key=True)
@@ -80,43 +80,46 @@ class Asset(models.Model):
     confidentiality_score = models.IntegerField(null=True, blank=True)
     integrity_score = models.IntegerField(null=True, blank=True)
     availability_score = models.IntegerField(null=True, blank=True)
-    internet_facing = models.BooleanField(default=False, null=True, blank=True)
+    internet_facing = models.BooleanField(null=True, blank=True)
     as_a_service = models.CharField(max_length=80, choices=AS_SERVICE_CHOICES, null=True, blank=True)
     master_record = models.CharField(null=True, blank=True)
-    is_kpi = models.BooleanField(default=False, null=True, blank=True)
+    is_kpi = models.BooleanField(default=False)
+    is_pentest_queue = models.BooleanField(default=False)
 
     def calculate_is_kpi(self):
         """
-        Evaluates the complex inclusion criteria against the Platform Configuration.
+        Evaluates the KPI criteria against Platform Configuration,
+        while safely handling Pandas 'nan' and empty values.
         """
-        # Local import
         from configurations.models import PlatformConfiguration
         config = PlatformConfiguration.load()
 
-        # 1. CIA: >= config_threshold OR 0 OR Null
+        # 1. Type: Must match valid_types (We do NOT allow empty here based on your rules)
+        current_type = str(self.asset_type).strip().lower() if self.asset_type else ""
+        type_valid = current_type in config.get_valid_types()
+
+        # 2. Stage: Match valid_stages OR empty/nan
+        current_stage = str(self.asset_stage).strip().lower() if self.asset_stage else ""
+        stage_valid = not current_stage or current_stage in ['nan',
+                                                             'none'] or current_stage in config.get_valid_stages()
+
+        # 3. CIA: >= config_threshold OR 0 OR Null
         cia_valid = (
                 self.cia_score is None or
                 self.cia_score == 0 or
                 self.cia_score >= config.kpi_min_cia
         )
 
-        # 2. Internet Facing: True OR Null
+        # 4. Internet Facing: True OR Null
         internet_valid = self.internet_facing is None or self.internet_facing is True
 
-        # 3. Stage: In valid_stages OR Null
-        current_stage = str(self.asset_stage).strip().lower() if self.asset_stage else None
-        stage_valid = not current_stage or current_stage in config.get_valid_stages()
+        # 5. As a Service: Match valid_aas OR empty/nan
+        current_aas = str(self.as_a_service).strip().lower() if self.as_a_service else ""
+        aas_valid = not current_aas or current_aas in ['nan', 'none'] or current_aas in config.get_valid_aas()
 
-        # 4. Type: In valid_types OR Null
-        current_type = str(self.asset_type).strip().lower() if self.asset_type else None
-        type_valid = not current_type or current_type in config.get_valid_types()
-
-        # 5. As a Service: In valid_aas OR Null
-        current_aas = str(self.as_a_service).strip().lower() if self.as_a_service else None
-        aas_valid = not current_aas or current_aas in config.get_valid_aas()
-
-        # 7. Master Record: Null OR Empty
-        master_valid = not self.master_record or str(self.master_record).strip() == ""
+        # 6. Master Record: Null OR Empty/nan
+        current_master = str(self.master_record).strip().lower() if self.master_record else ""
+        master_valid = not current_master or current_master in ['nan', 'none']
 
         results = {
             "CIA": cia_valid,
@@ -128,13 +131,25 @@ class Asset(models.Model):
         }
 
         if not all(results.values()):
-            print(f"Asset {self.name} failed KPI: {results}")  # Check your server console
+            print(f"Asset {self.name} failed KPI: {results}")
 
         return all(results.values())
 
     def save(self, *args, **kwargs):
+        # check if the asset is new
+        is_new_asset = self._state.adding
+
         # Dynamically auto-calculate KPI status before saving to the database
         self.is_kpi = self.calculate_is_kpi()
+
+        # If it's a new asset and in KPI, set pentest queue to True
+        if is_new_asset and self.is_kpi:
+            self.is_pentest_queue = True
+
+        update_fields = kwargs.get('update_fields')
+        if update_fields is not None:
+            kwargs['update_fields'] = set(update_fields) | {'is_kpi'}
+
         super().save(*args, **kwargs)
 
     class Meta:

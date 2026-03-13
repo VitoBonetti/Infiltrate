@@ -48,7 +48,7 @@ class PlatformConfiguration(SingletonModel):
     )
     kpi_target_as_a_service = models.CharField(
         max_length=255,
-        default="None of above",
+        default="None of the above",
         help_text="Comma-separated As-A-Service values to include."
     )
 

@@ -91,7 +91,8 @@ def process_assets_excel_background(file_path):
                     return None
 
             def clean_bool(val):
-                if pd.isna(val): return False
+                if pd.isna(val) or str(val).strip().lower() in ['nan', 'none', '']:
+                    return None
                 return str(val).lower() in ['yes', 'true', '1', 'y']
 
             defaults_dict = {
@@ -141,6 +142,22 @@ def process_assets_excel_background(file_path):
         connection.close()
 
 
+def recalculate_all_assets_kpi_background():
+    """
+    Runs in a background thread to update the KPI status of all assets
+    without freezing the web request.
+    """
+    try:
+        from assets.models import Asset
+        # Loop through all assets and trigger their save method to recalculate is_kpi
+        for asset in Asset.objects.all():
+            asset.save(update_fields=['is_kpi'])
+    except Exception as e:
+        print(f"Error recalculating KPIs in background: {str(e)}")
+    finally:
+        # close the database connection for background threads!
+        connection.close()
+
 class ConfigurationUpdateView(ManagementAccessMixin, UpdateView):
     model = PlatformConfiguration
     form_class = ConfigurationForm
@@ -152,8 +169,13 @@ class ConfigurationUpdateView(ManagementAccessMixin, UpdateView):
         return PlatformConfiguration.load()
 
     def form_valid(self, form):
-        messages.success(self.request, "Platform configuration updated successfully.")
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        messages.success(self.request, "Platform configuration updated successfully. Asset KPIs are being recalculated in the background.")
+
+        thread = threading.Thread(target=recalculate_all_assets_kpi_background)
+        thread.start()
+
+        return response
 
 
 class ManagementHomeView(ManagementAccessMixin, TemplateView):
