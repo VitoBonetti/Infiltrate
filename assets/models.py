@@ -100,30 +100,37 @@ class Asset(models.Model):
                 self.cia_score >= config.kpi_min_cia
         )
 
-        # 2. Internet Facing: False OR Null
-        internet_valid = self.internet_facing is None or self.internet_facing is False
+        # 2. Internet Facing: True OR Null
+        internet_valid = self.internet_facing is None or self.internet_facing is True
 
         # 3. Stage: In valid_stages OR Null
-        stage_valid = self.asset_stage is None or self.asset_stage in config.get_valid_stages()
+        current_stage = str(self.asset_stage).strip().lower() if self.asset_stage else None
+        stage_valid = not current_stage or current_stage in config.get_valid_stages()
 
         # 4. Type: In valid_types OR Null
-        type_valid = self.asset_type is None or self.asset_type in config.get_valid_types()
+        current_type = str(self.asset_type).strip().lower() if self.asset_type else None
+        type_valid = not current_type or current_type in config.get_valid_types()
 
-        # 5. Master Record: Null OR Empty
+        # 5. As a Service: In valid_aas OR Null
+        current_aas = str(self.as_a_service).strip().lower() if self.as_a_service else None
+        aas_valid = not current_aas or current_aas in config.get_valid_aas()
+
+        # 7. Master Record: Null OR Empty
         master_valid = not self.master_record or str(self.master_record).strip() == ""
 
-        # 6. As a Service: In valid_aas OR Null
-        aas_valid = self.as_a_service is None or self.as_a_service in config.get_valid_aas()
+        results = {
+            "CIA": cia_valid,
+            "Internet": internet_valid,
+            "Stage": stage_valid,
+            "Type": type_valid,
+            "Master": master_valid,
+            "AAS": aas_valid
+        }
 
-        # ALL criteria must be met
-        return all([
-            cia_valid,
-            internet_valid,
-            stage_valid,
-            type_valid,
-            master_valid,
-            aas_valid
-        ])
+        if not all(results.values()):
+            print(f"Asset {self.name} failed KPI: {results}")  # Check your server console
+
+        return all(results.values())
 
     def save(self, *args, **kwargs):
         # Dynamically auto-calculate KPI status before saving to the database

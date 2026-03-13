@@ -38,7 +38,7 @@ class PlatformConfiguration(SingletonModel):
     )
     kpi_target_stages = models.CharField(
         max_length=255,
-        default="In Production",
+        default="In production",
         help_text="Comma-separated stages. E.g., 'In Production,Outphasing'"
     )
     kpi_target_types = models.CharField(
@@ -61,10 +61,13 @@ class PlatformConfiguration(SingletonModel):
 
     # Helper methods to convert comma-separated strings to clean lists
     def get_valid_stages(self):
-        return [s.strip() for s in self.kpi_target_stages.split(',')] if self.kpi_target_stages else []
+        if not self.kpi_target_stages: return []
+        return [s.strip().lower() for s in self.kpi_target_stages.split(',')]
 
     def get_valid_types(self):
-        return [t.strip() for t in self.kpi_target_types.split(',')] if self.kpi_target_types else []
+        if not self.kpi_target_types: return []
+        return [t.strip().lower() for t in self.kpi_target_types.split(',')]
 
     def get_valid_aas(self):
-        return [a.strip() for a in self.kpi_target_as_a_service.split(',')] if self.kpi_target_as_a_service else []
+        if not self.kpi_target_as_a_service: return []
+        return [a.strip().lower() for a in self.kpi_target_as_a_service.split(',')]

@@ -81,7 +81,7 @@ def process_assets_excel_background(file_path):
             if not org_instance:
                 continue
 
-            def clean_val(val, default=""):
+            def clean_val(val, default=None):
                 return str(val).strip() if not pd.isna(val) and str(val).lower() != 'nan' else default
 
             def clean_int(val):
@@ -972,7 +972,7 @@ class AssetListView(ManagementAccessMixin, View):
         else:
             queryset = queryset.order_by('name')
 
-        paginator = Paginator(queryset, 150)
+        paginator = Paginator(queryset, 500)
         page_number = request.GET.get('page')
         page_obj = paginator.get_page(page_number)
 
