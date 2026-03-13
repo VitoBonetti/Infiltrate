@@ -1,0 +1,8 @@
+Django
+Pillow
+jsonschema
+django-ratelimit
+django-widget-tweaks
+pandas
+openpyxl
+defusedxml

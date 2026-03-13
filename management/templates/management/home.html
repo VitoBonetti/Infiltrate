@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{{ block.super }} Management{% endblock title %}
+{% block custom_script %}{% endblock custom_script %}
+{% block content %}
+    {% include 'management/helpers/sub_navbar.html' %}
+    <div class="container-fluid">
+        <div class="row mt-3 mb-2">
+            <div class="col-12">
+                <div class="h5 fw-bold">
+                    Platform Management
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="card management-home-card-bg shadow h-100 border-0 border-start border-5 border-success">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3 border-0 border-bottom border-secondary border-2">
+                        <h5 class="card-title mb-0 fw-bold fs-6">Regions</h5>
+                        <i class="bi bi-globe2 fs-5 "></i>
+                    </div>
+                    <div class="mt-4">
+                        <div class="d-flex justify-content-between mb-2 pb-1">
+                            <span class="small">Total Regions</span>
+                            <span class="fw-bold badge bg-light rounded-pill text-dark">{{ total_regions_count }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="small">Active</span>
+                            <span class="fw-bold badge bg-warning rounded-pill text-dark">{{ active_regions_count }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-0 pb-3 pt-0 text-center">
+                    <a href="{% url 'regions' %}" class="btn btn-sm btn-outline-dark w-100 stretched-link fw-bold">Manage</a>
+                </div>
+            </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card management-home-card-bg shadow h-100 border-0 border-start border-5 border-success">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3 border-0 border-bottom border-secondary border-2">
+                        <h5 class="card-title mb-0 fw-bold fs-6">Markets</h5>
+                        <i class="bi bi-shop fs-5"></i>
+                    </div>
+                    <div class="mt-4">
+                        <div class="d-flex justify-content-between mb-2 pb-1">
+                            <span class="small">Total Markets</span>
+                            <span class="fw-bold badge bg-light rounded-pill text-dark">{{ total_markets_count }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between  mb-2 pb-1">
+                            <span class="small">Active</span>
+                            <span class="fw-bold badge bg-warning rounded-pill text-dark">{{ active_markets_count }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="small">Key Market <i class="bi bi-stars text-warning"></i></span>
+                            <span class="fw-bold badge bg-danger rounded-pill text-light">{{ key_markets_count }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-0 pb-3 pt-0 text-center">
+                    <a href="{% url 'markets' %}" class="btn btn-sm btn-outline-dark w-100 stretched-link fw-bold">Manage</a>
+                </div>
+            </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card management-home-card-bg shadow h-100 border-0 border-start border-5 border-success">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3 border-0 border-bottom border-secondary border-2">
+                            <h5 class="card-title fs-6 mb-0 fw-bold">Organizations</h5>
+                            <i class="bi bi-building fs-5"></i>
+                        </div>
+                        <div class="mt-4 text-center">
+                            <h2 class="display-5 fw-bold mb-0 ">{{ total_orgs_count }}</h2>
+                            <span class="small">Total Registered</span>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 pb-3 pt-0 text-center">
+                        <a href="{% url 'organizations' %}" class="btn btn-sm btn-outline-dark w-100 stretched-link fw-bold">Manage</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card management-home-card-bg shadow h-100 border-0 border-start border-5 border-success">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3 border-0 border-bottom border-secondary border-2">
+                            <h5 class="card-title fs-6 mb-0 fw-bold">Assets</h5>
+                            <i class="bi bi-pc-display fs-5"></i>
+                        </div>
+                        <div class="mt-4">
+                            <div class="d-flex justify-content-between mb-2 pb-1">
+                                <span class="small">Total Assets</span>
+                                <span class="fw-bold badge bg-light rounded-pill text-dark">{{ total_assets }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between  mb-2 pb-1">
+                                <span class="small">Active</span>
+                                <span class="fw-bold badge bg-warning rounded-pill text-dark">{{ active_assets }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="small">In KPI <i class="bi bi-stars text-warning"></i></span>
+                                <span class="fw-bold badge bg-danger rounded-pill text-light">{{ kpi_assets }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 pb-3 pt-0 text-center">
+                        <a href="{% url 'assets' %}" class="btn btn-sm btn-outline-dark w-100 stretched-link fw-bold">Manage</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row mt-3 mb-2">
+            <div class="col-12">
+                <div class="h5 fw-bold">
+                    Users Administration
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="card management-home-card-bg shadow h-100 border-0 border-start border-5 border-warning">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3 border-0 border-bottom border-secondary border-2">
+                            <h5 class="card-title mb-0 fw-bold fs-6">Users</h5>
+                            <i class="bi bi-people-fill fs-5 "></i>
+                        </div>
+                        <div class="mt-4">
+                            <div class="d-flex justify-content-between mb-2 pb-1">
+                                <span class="small">Total Users</span>
+                                <span class="fw-bold badge bg-light rounded-pill text-dark">{{ total_users_count }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2 pb-1">
+                                <span class="small">Platform GODs</span>
+                                <span class="fw-bold badge bg-danger rounded-pill text-light">{{ god_user_count }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2 pb-1">
+                                <span class="small">Platform Admins</span>
+                                <span class="fw-bold badge bg-warning rounded-pill text-dark">{{ admin_users_count }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="small">Scoped Roles</span>
+                                <span class="fw-bold badge bg-success rounded-pill text-light">{{ scoped_role }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 pb-3 pt-0 text-center">
+                        <a href="{% url 'users' %}" class="btn btn-sm btn-outline-dark w-100 stretched-link fw-bold">Manage</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row mt-3 mb-2">
+            <div class="col-12">
+                <div class="h5 fw-bold">
+                    Platform Configurations
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="card management-home-card-bg shadow h-100 border-0 border-start border-5 border-danger">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3 border-0 border-bottom border-secondary border-2">
+                            <h5 class="card-title mb-0 fw-bold fs-6">Config</h5>
+                            <i class="bi bi-gear-fill fs-5 "></i>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 pb-3 pt-0 text-center">
+                        <a href="{% url 'configuration_settings' %}" class="btn btn-sm btn-outline-dark w-100 stretched-link fw-bold">Manage</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock content %}
+{% block custom_bottom_script %}{% endblock custom_bottom_script %}

@@ -1,0 +1,221 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+{% load static %}
+{% block title %}{{ block.super }} {% if editing %}Edit{% else %}Add{% endif %} Market {% endblock title %}
+{% block custom_script %}{% endblock custom_script %}
+{% block content %}
+    {% include 'management/helpers/sub_navbar.html' %}
+    <div class="container-fluid">
+        <div class="row mt-3 mb-3 align-items-center">
+            <div class="col-auto">
+                <a href="{% url 'markets' %}" class="btn btn-outline-dark rounded-circle d-flex align-items-center justify-content-center p-0" style="width: 32px; height: 32px;" title="Back to Management">
+                    <i class="bi bi-arrow-left fs-5"></i>
+                </a>
+            </div>
+            <div class="col">
+                <div class="h5 fw-bold">
+                    {% if editing %}Edit Market{% else %}Add New Market{% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card shadow border-0 border-start {% if editing %}border-danger{% else %}border-dark{% endif %} border-5 management-home-card-bg">
+                    <div class="card-body p-4">
+                        <form method="post" enctype="multipart/form-data" action="{% if editing %}?market_id={{ market_id }}{% endif %}">
+                            {% csrf_token %}
+                            {% if form.non_field_errors %}
+                                <div class="alert alert-danger py-2 mb-3">
+                                    {% for error in form.non_field_errors %}
+                                        <p class="mb-0 fw-bold"><i class="bi bi-exclamation-triangle-fill"></i> {{ error }}</p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="row mb-3">
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold">Market Name *</label>
+                                    {% if form.market.errors %}
+                                        {% render_field form.market class="form-control form-control-sm border-1 border-dark is-invalid" %}
+                                        <div class="invalid-feedback fw-bold">{{ form.market.errors|striptags }}</div>
+                                    {% else %}
+                                        {% render_field form.market class="form-control form-control-sm border-1 border-dark" %}
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold">Region *</label>
+                                    {% if form.region.errors %}
+                                        {% render_field form.region class="form-select form-select-sm border-1 border-dark is-invalid" %}
+                                        <div class="text-danger small mt-1">{{ form.region.errors|striptags }}</div>
+                                    {% else %}
+                                        {% render_field form.region class="form-select form-select-sm border-1 border-dark" %}
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold">Market Code *</label>
+                                    {% if form.code.errors %}
+                                        {% render_field form.code class="form-control form-control-sm border-1 border-dark is-invalid" placeholder="e.g. US, UK" %}
+                                        <div class="text-danger small mt-1">{{ form.code.errors|striptags }}</div>
+                                    {% else %}
+                                        {% render_field form.code class="form-control form-control-sm border-1 border-dark" placeholder="e.g. US, UK" %}
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold">Primary Language</label>
+                                    {% render_field form.language class="form-control form-control-sm border-1 border-dark" %}
+                                    <div class="text-danger small mt-1">{{ form.language.errors|striptags }}</div>
+                                </div>
+                                <div class="col-md-6">
+                                   <label class="form-label fw-bold">Description</label>
+                                    {% render_field form.description class="form-control form-control-sm border-1 border-dark " rows="6" style="resize: none; height: 150px;" %}
+                                    <div class="text-danger small mt-1">{{ form.description.errors|striptags }}</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">Flag Icon</label>
+                                    <input type="checkbox" name="flag_icons-clear" id="id_flag_icons-clear" class="d-none" value="on">
+                                    <input type="file" name="flag_icons" id="id_flag_icons" class="d-none" accept="image/*">
+                                    <div id="flag-drop-zone" class="border border-2 border-dashed border-dark rounded p-4 text-center position-relative" style="cursor: pointer; transition: all 0.2s; height: 150px;">
+                                        <div id="drop-zone-text" class="{% if form.instance.flag_icons %}d-none{% endif %}">
+                                            <i class="bi bi-image text-secondary" style="font-size: 2rem;"></i>
+                                            <h6 class="mt-2 fw-bold mb-1">Drag & Drop flag image here</h6>
+                                            <p class="text-muted small mb-0">or click to browse</p>
+                                        </div>
+                                        <img id="flag-preview" src="{% if form.instance.flag_icons %}{{ form.instance.flag_icons.url }}{% endif %}" class="mt-2 mb-2 rounded shadow {% if not form.instance.flag_icons %}d-none{% endif %}" style="max-height: 80px; max-width: 100%;">
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center mt-2">
+                                        <div id="flag-file-name-display" class="text-success fw-bold small">
+                                            {% if form.instance.flag_icons %}
+                                                <i class="bi bi-check-circle-fill"></i> Current: {{ form.instance.flag_icons.name }}
+                                            {% endif %}
+                                        </div>
+                                        <button type="button" id="remove-image-btn" class="btn btn-sm btn-outline-danger {% if not form.instance.flag_icons %}d-none{% endif %}">
+                                            <i class="bi bi-trash"></i> Remove Image
+                                        </button>
+                                    </div>
+                                    <div class="text-danger small mt-1">{{ form.flag_icons.errors|striptags }}</div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="d-flex justify-content-end gap-2 mt-4">
+                                        <div class="form-check form-switch fs-5">
+                                            {% render_field form.active class="form-check-input border-dark" %}
+                                            <label class="form-check-label fs-6 mt-1 fw-bold">Active Market</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="d-flex justify-content-end gap-2 mt-4">
+                                        <div class="form-check form-switch fs-5">
+                                            {% render_field form.key_market class="form-check-input border-dark" %}
+                                            <label class="form-check-label fs-6 mt-1 fw-bold">Key Market <i class="bi bi-star-fill text-warning"></i></label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-8">
+                                    <div class="d-flex justify-content-end gap-2 mt-4">
+                                        <a href="{% url 'markets' %}" class="btn btn-outline-danger">Cancel</a>
+                                        <button type="submit" class="btn btn-outline-dark px-4">
+                                            {% if editing %}Save Changes{% else %}Create Market{% endif %}
+                                        </button>
+                                        {%  if not editing %}
+                                            <button type="submit" name="save_and_add" class="btn btn-outline-success px-4">
+                                                Save and Add Another
+                                            </button>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6"></div>
+        </div>
+    </div>
+{% endblock content %}
+{% block custom_bottom_script %}
+    {{ block.super }}
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const dropZone = document.getElementById('flag-drop-zone');
+            const fileInput = document.getElementById('id_flag_icons');
+            const clearCheckbox = document.getElementById('id_flag_icons-clear');
+            const fileDisplay = document.getElementById('flag-file-name-display');
+            const dropZoneText = document.getElementById('drop-zone-text');
+            const imgPreview = document.getElementById('flag-preview');
+            const removeBtn = document.getElementById('remove-image-btn');
+
+            if(dropZone && fileInput) {
+                // Click to open file dialog
+                dropZone.addEventListener('click', () => fileInput.click());
+
+                // Handle Drag events (visual feedback)
+                ['dragover', 'dragenter'].forEach(eventName => {
+                    dropZone.addEventListener(eventName, (e) => {
+                        e.preventDefault();
+                        dropZone.classList.add('border-warning');
+                        dropZone.classList.remove('border-secondary');
+                    });
+                });
+
+                ['dragleave', 'dragend', 'drop'].forEach(eventName => {
+                    dropZone.addEventListener(eventName, (e) => {
+                        e.preventDefault();
+                        dropZone.classList.remove('border-warning');
+                        dropZone.classList.add('border-secondary');
+                    });
+                });
+
+                // Handle Drop
+                dropZone.addEventListener('drop', (e) => {
+                    const files = e.dataTransfer.files;
+                    if (files.length) {
+                        fileInput.files = files; // Assign files to the hidden input
+                        fileInput.dispatchEvent(new Event('change')); // Trigger change
+                    }
+                });
+
+                // Handle manual select / successful drop
+                fileInput.addEventListener('change', function() {
+                    if (this.files.length) {
+                        const file = this.files[0];
+
+                        // Uncheck the Django 'clear' checkbox since we are uploading a new file
+                        clearCheckbox.checked = false;
+
+                        fileDisplay.innerHTML = `<i class="bi bi-check-circle-fill"></i> Selected: ${file.name}`;
+                        removeBtn.classList.remove('d-none'); // Show remove button
+
+                        if (file.type.startsWith('image/')) {
+                            const reader = new FileReader();
+                            reader.onload = function(e) {
+                                imgPreview.src = e.target.result;
+                                imgPreview.classList.remove('d-none'); // Show image
+                                dropZoneText.classList.add('d-none');  // Hide text
+                            }
+                            reader.readAsDataURL(file);
+                        }
+                    }
+                });
+
+                // Handle Remove Button Click
+                if (removeBtn) {
+                    removeBtn.addEventListener('click', function(e) {
+                        e.stopPropagation(); // Prevent opening the file dialog
+
+                        // Clear the actual file input
+                        fileInput.value = '';
+
+                        // Check the hidden checkbox so Django deletes it on save
+                        clearCheckbox.checked = true;
+
+                        // Reset the UI
+                        imgPreview.src = '';
+                        imgPreview.classList.add('d-none');
+                        dropZoneText.classList.remove('d-none');
+                        removeBtn.classList.add('d-none');
+                        fileDisplay.innerHTML = '';
+                    });
+                }
+            }
+        });
+    </script>
+{% endblock custom_bottom_script %}

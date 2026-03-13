@@ -1,0 +1,23 @@
+<nav class="nav nav-pills flex-column flex-sm-row mb-2 rounded-3 sub-navbar">
+    <a class="flex-sm-fill text-sm-center nav-link {% if request.resolver_match.url_name == 'management' %}active sub-navbar-selected text-dark fw-bold shadow-sm{% else %}text-light{% endif %}" href="{% url 'management' %}">
+        <i class="bi bi-speedometer2 me-1"></i> Overview
+    </a>
+    <a class="flex-sm-fill text-sm-center nav-link {% if 'region' in request.resolver_match.url_name %}active sub-navbar-selected text-dark fw-bold shadow-sm{% else %}text-light{% endif %}" href="{% url 'regions' %}">
+        <i class="bi bi-globe2 me-1"></i> Regions
+    </a>
+    <a class="flex-sm-fill text-sm-center nav-link {% if 'market' in request.resolver_match.url_name %}active sub-navbar-selected text-dark fw-bold shadow-sm{% else %}text-light{% endif %}" href="{% url 'markets' %}">
+        <i class="bi bi-shop me-1"></i> Markets
+    </a>
+    <a class="flex-sm-fill text-sm-center nav-link {% if 'organization' in request.resolver_match.url_name %}active sub-navbar-selected text-dark fw-bold shadow-sm{% else %}text-light{% endif %}" href="{% url 'organizations' %}">
+        <i class="bi bi-building me-1"></i> Organizations
+    </a>
+    <a class="flex-sm-fill text-sm-center nav-link {% if 'asset' in request.resolver_match.url_name %}active sub-navbar-selected text-dark fw-bold shadow-sm{% else %}text-light{% endif %}" href="{% url 'assets' %}">
+        <i class="bi bi-pc-display me-1"></i> Assets
+    </a>
+    <a class="flex-sm-fill text-sm-center nav-link {% if 'configuration_settings' in request.resolver_match.url_name %}active sub-navbar-selected text-dark fw-bold shadow-sm{% else %}text-light{% endif %}" href="{% url 'configuration_settings' %}">
+        <i class="bi bi-gear me-1"></i> Configurations
+    </a>
+    <a class="flex-sm-fill text-sm-center nav-link {% if 'user' in request.resolver_match.url_name %}active sub-navbar-selected text-dark fw-bold shadow-sm{% else %}text-light{% endif %}" href="{% url 'users' %}">
+        <i class="bi bi-people-fill"></i> Users
+    </a>
+</nav>

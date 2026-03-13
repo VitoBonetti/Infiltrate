@@ -1,0 +1,225 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+{% load static %}
+
+{% block title %}{{ block.super }} {% if editing %}Edit{% else %}Add{% endif %} Assets {% endblock title %}
+
+{% block content %}
+    {% include 'management/helpers/sub_navbar.html' %}
+
+    <div class="container-fluid">
+        <div class="row mt-3 mb-3 align-items-center">
+            <div class="col-auto">
+                <a href="{% url 'assets' %}" class="btn btn-outline-dark rounded-circle d-flex align-items-center justify-content-center p-0" style="width: 32px; height: 32px;" title="Back to Management">
+                    <i class="bi bi-arrow-left fs-5"></i>
+                </a>
+            </div>
+            <div class="col">
+                <div class="h5 fw-bold mb-0">
+                    {% if editing %}Edit Asset{% else %}Add New Asset{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-10 mx-auto">
+                <div class="card shadow border-0 border-start {% if editing %}border-danger{% else %}border-dark{% endif %} border-5 management-home-card-bg">
+
+                    {% if not editing %}
+                        <div class="card-header bg-dark-subtle border-bottom-0 pt-3 pb-0">
+                            <ul class="nav nav-tabs" id="assetTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active fw-bold text-dark text-tab" id="single-tab" data-bs-toggle="tab" data-bs-target="#single" type="button" role="tab">Single Entry</button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link fw-bold text-dark text-tab" id="excel-file-tab" data-bs-toggle="tab" data-bs-target="#excel-file" type="button" role="tab">
+                                        <i class="bi bi-file-earmark-spreadsheet-fill"></i> Excel Bulk Upload
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                    {% endif %}
+
+                    <div class="card-body management-home-card-bg p-4">
+                        <div class="tab-content" id="assetTabsContent">
+
+                            <div class="tab-pane fade show active" id="single" role="tabpanel">
+                                <form method="post" action="{% if editing %}?asset_id={{ asset_id }}{% endif %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="submission_type" value="single">
+
+                                    <div class="row mb-4">
+                                        <div class="col-12"><div class="h6 fw-bold mb-3 text-uppercase tracking-wider border-bottom pb-2">1. Asset Identity</div></div>
+                                        <div class="col-md-4 mb-3">
+                                            <label class="form-label fw-bold">Asset Name *</label>
+                                            {% render_field form.name class="form-control form-control-sm border-dark border-1 rounded" %}
+                                            <div class="text-danger small mt-1">{{ form.name.errors|striptags }}</div>
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <label class="form-label fw-bold">Organization *</label>
+                                            {% render_field form.organization class="form-select form-select-sm border-dark border-1 rounded" %}
+                                            <div class="text-danger small mt-1">{{ form.organization.errors|striptags }}</div>
+                                        </div>
+                                        <div class="col-md-2 mb-3">
+                                            <label class="form-label fw-bold">Numeric ID</label>
+                                            {% render_field form.ID class="form-control form-control-sm border-dark border-1 rounded" placeholder="e.g. 10045" %}
+                                            <div class="text-danger small mt-1">{{ form.ID.errors|striptags }}</div>
+                                        </div>
+                                        <div class="col-md-2 mb-3">
+                                            <label class="form-label fw-bold">Location</label>
+                                            {% render_field form.hosting_location class="form-control form-control-sm border-dark border-1 rounded" placeholder="e.g. USA" %}
+                                        </div>
+                                    </div>
+
+                                    <div class="row mb-4">
+                                        <div class="col-12"><div class="h6 fw-bold mb-3 text-uppercase tracking-wider border-bottom pb-2">2. Status & Classification</div></div>
+                                        <div class="col-md-3 mb-3">
+                                            <label class="form-label fw-bold">Status</label>
+                                            {% render_field form.asset_status class="form-select form-select-sm border-dark border-1 rounded" %}
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <label class="form-label fw-bold">Stage</label>
+                                            {% render_field form.asset_stage class="form-select form-select-sm border-dark border-1 rounded" %}
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <label class="form-label fw-bold">Type</label>
+                                            {% render_field form.asset_type class="form-select form-select-sm border-dark border-1 rounded" %}
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <label class="form-label fw-bold">As a Service</label>
+                                            {% render_field form.as_a_service class="form-select form-select-sm border-dark border-1 rounded" %}
+                                        </div>
+                                    </div>
+
+                                    <div class="row mb-4">
+                                        <div class="col-12"><div class="h6 fw-bold mb-3 text-uppercase tracking-wider border-bottom pb-2">3. Risk Scoring (CIA)</div></div>
+                                        <div class="col-md-3 mb-3">
+                                            <label class="form-label fw-bold">Overall CIA Score</label>
+                                            {% render_field form.cia_score class="form-control form-control-sm border-dark border-1 rounded" type="number" %}
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <label class="form-label fw-bold">Confidentiality</label>
+                                            {% render_field form.confidentiality_score class="form-control form-control-sm border-dark border-1 rounded" type="number" %}
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <label class="form-label fw-bold">Integrity</label>
+                                            {% render_field form.integrity_score class="form-control form-control-sm border-dark border-1 rounded" type="number" %}
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <label class="form-label fw-bold">Availability</label>
+                                            {% render_field form.availability_score class="form-control form-control-sm border-dark border-1 rounded" type="number" %}
+                                        </div>
+                                    </div>
+
+                                    <div class="row mb-4">
+                                        <div class="col-12"><div class="h6 fw-bold mb-3 text-uppercase tracking-wider border-bottom pb-2">4. Additional Information</div></div>
+                                        <div class="col-md-3 mb-3">
+                                            <label class="form-label d-block fw-bold">Connectivity</label>
+                                            <div class="form-check form-switch pt-1">
+                                                {% render_field form.internet_facing class="form-check-input border-dark" %}
+                                                <label class="form-check-label text-danger fw-bold ms-2">Internet Facing</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-9 mb-3">
+                                            <label class="form-label fw-bold">Master Record Notes</label>
+                                            {% render_field form.master_record class="form-control form-control-sm border-dark border-1 rounded" rows="1" %}
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                                        <a href="{% url 'assets' %}" class="btn btn-outline-danger">Cancel</a>
+                                        <button type="submit" class="btn btn-outline-dark px-4">{% if editing %}Save Changes{% else %}Create Asset{% endif %}</button>
+                                        {% if not editing %}
+                                            <button type="submit" name="save_and_add" class="btn btn-outline-success">Save & Add Another</button>
+                                        {% endif %}
+                                    </div>
+                                </form>
+                            </div>
+
+                            {% if not editing %}
+                            <div class="tab-pane fade" id="excel-file" role="tabpanel">
+                                <div class="alert alert-success bg-success-subtle border-success text-dark small mb-4">
+                                    <i class="bi bi-info-circle-fill me-1"></i> <strong>Bulk Upload Rules:</strong><br>
+                                    - Your Excel sheet must contain headers exactly matching: <code>Inventory Id</code>, <code>ID</code>, <code>Name</code>, <code>Managing Organization</code>, etc.<br>
+                                    - System matches by <code>Inventory Id</code> or <code>ID + Org + Name</code>.<br>
+                                    - <strong>Archived</strong> status assets will be ignored.
+                                </div>
+                                <form method="post" enctype="multipart/form-data">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="submission_type" value="excel_file">
+
+                                    <div id="drop-zone" class="border border-2 border-dashed border-success rounded p-5 text-center mb-4 bg-light" style="cursor: pointer; transition: background-color 0.2s;">
+                                        <i class="bi bi-file-earmark-excel text-success" style="font-size: 3rem;"></i>
+                                        <div class="h5 mt-3 fw-bold text-dark">Drag & Drop your Excel file here</div>
+                                        <div class="text-muted mb-0">Supports .xlsx and .xls (or click to browse)</div>
+                                        <input type="file" name="excel_file" id="excel_file_input" accept=".xlsx, .xls" class="d-none" required>
+                                    </div>
+                                    <div id="file-name-display" class="text-success fw-bold text-center mb-3 fs-5"></div>
+
+                                    <div class="d-flex justify-content-end gap-2">
+                                        <button type="submit" class="btn btn-success px-4 fw-bold"><i class="bi bi-upload me-1"></i> Process Excel File</button>
+                                    </div>
+                                </form>
+                            </div>
+                            {% endif %}
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock content %}
+{% block custom_bottom_script %}
+    {{ block.super }}
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const dropZone = document.getElementById('drop-zone');
+            const fileInput = document.getElementById('excel_file_input');
+            const fileDisplay = document.getElementById('file-name-display');
+
+            if(dropZone && fileInput) {
+                // Click to open file dialog
+                dropZone.addEventListener('click', () => fileInput.click());
+
+                // Handle Drag events
+                ['dragover', 'dragenter'].forEach(eventName => {
+                    dropZone.addEventListener(eventName, (e) => {
+                        e.preventDefault();
+                        dropZone.classList.remove('bg-light');
+                        dropZone.classList.add('bg-white', 'border-success');
+                    });
+                });
+
+                ['dragleave', 'dragend', 'drop'].forEach(eventName => {
+                    dropZone.addEventListener(eventName, (e) => {
+                        e.preventDefault();
+                        dropZone.classList.add('bg-light');
+                        dropZone.classList.remove('bg-white', 'border-success');
+                    });
+                });
+
+                // Handle Drop
+                dropZone.addEventListener('drop', (e) => {
+                    const files = e.dataTransfer.files;
+                    if (files.length) {
+                        fileInput.files = files; // Assign files to input
+                        updateFileDisplay(files[0].name);
+                    }
+                });
+
+                // Handle manual select
+                fileInput.addEventListener('change', function() {
+                    if (this.files.length) {
+                        updateFileDisplay(this.files[0].name);
+                    }
+                });
+
+                function updateFileDisplay(name) {
+                    fileDisplay.innerHTML = `<i class="bi bi-check-circle-fill me-1"></i> Ready to upload: ${name}`;
+                    dropZone.classList.add('border-success');
+                }
+            }
+        });
+    </script>
+{% endblock custom_bottom_script %}

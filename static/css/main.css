@@ -1,0 +1,53 @@
+body {
+    background-color: #FFFFFF;
+    color: #0C2B4E;
+}
+/* Custom Color for Nav Bar */
+.navbar .nav-link {
+    font-weight: bold;
+    font-size: medium;
+    color: #0C2B4E;
+}
+.navbar .nav-link:hover,
+.navbar .nav-link:focus {
+    color: #FF714B !important;
+    text-decoration: underline;
+}
+/* END */
+.login-card-bg {
+    background-color: #0C2B4E !important;
+    color: #FFFFFF;
+}
+.dashboard-user-card {
+    background-color: #0C2B4E !important;
+    color: #FFFFFF;
+}
+.select-menu-text {
+    color: #FF714B !important;
+}
+.select-menu-bg {
+    background-color: #FF714B !important;
+    color: #FFFFFF;
+}
+.sub-navbar {
+    background-color: #0C2B4E !important;
+    color: #FFFFFF;
+}
+.sub-navbar-selected {
+    background-color: #FF714B !important;
+    color: #0C2B4E;
+}
+.management-home-card-bg {
+    background-color: #FCF8F8 !important;
+}
+.custom-card-header {
+    background-color: #FF714B !important;
+    color: #0C2B4E;
+}
+.btn-custom {
+    background-color: #0C2B4E !important;
+    color: #FFFFFF;
+}
+.text-tab {
+    color: #0C2B4E !important;
+}

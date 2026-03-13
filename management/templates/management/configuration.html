@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{{ block.super }} Configurations {% endblock title %}
+{% block custom_script %}{% endblock custom_script %}
+{% block content %}
+    {% include 'management/helpers/sub_navbar.html' %}
+    <div class="container-fluid">
+        <div class="row mt-3 mb-3 align-items-center">
+            <div class="col-auto">
+                <a href="{% url 'management' %}" class="btn btn-outline-dark rounded-circle d-flex align-items-center justify-content-center p-0" style="width: 32px; height: 32px;" title="Back to Management">
+                    <i class="bi bi-arrow-left fs-5"></i>
+                </a>
+            </div>
+            <div class="col">
+                <div class="h5 fw-bold">
+                    Configurations
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card shadow border-0 border-start border-danger border-5 management-home-card-bg">
+                    <div class="card-body p-4">
+                        <div class="text-dark small fst-italic mb-4">
+                            These global settings dictate SLA deadlines and automatically determine which assets fall under the Pentesting KPI.
+                        </div>
+                        <form method="POST">
+                            {% csrf_token %}
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="h5 text-dark pb-2">SLA Settings (Days)</div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Critical SLA</label>
+                                        {{ form.critical_sla_days }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">High SLA</label>
+                                        {{ form.high_sla_days }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Medium SLA</label>
+                                        {{ form.medium_sla_days }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Low SLA</label>
+                                        {{ form.low_sla_days }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Info SLA</label>
+                                        {{ form.info_sla_days }}
+                                    </div>
+                                    <hr class="border-2 border-success">
+                                    <div class="h5 text-dark pb-2">Vulnerabilities KPI Target Year</div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">KPI Year</label>
+                                        {{ form.vuln_kpi_year }}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="h5 text-dark  pb-2">Pentest KPI Inclusion Rules</div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Minimum CIA Score</label>
+                                        {{ form.kpi_min_cia }}
+                                        <small class="form-text text-muted">{{ form.kpi_min_cia.help_text }}</small>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Target Stages</label>
+                                        {{ form.kpi_target_stages }}
+                                        <small class="form-text text-muted">{{ form.kpi_target_stages.help_text }}</small>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Target Asset Types</label>
+                                        {{ form.kpi_target_types }}
+                                        <small class="form-text text-muted">{{ form.kpi_target_types.help_text }}</small>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Target As-A-Service Models</label>
+                                        {{ form.kpi_target_as_a_service }}
+                                        <small class="form-text text-muted">{{ form.kpi_target_as_a_service.help_text }}</small>
+                                    </div>
+                                </div>
+                                <div class="mt-4 d-flex justify-content-end">
+                                    <button type="submit" class="btn btn-outline-dark px-4">Save Configuration</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock content %}
+{% block custom_bottom_script %}{% endblock custom_bottom_script %}

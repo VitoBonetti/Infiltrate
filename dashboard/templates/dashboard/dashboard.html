@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{{ block.super }} Dashboard {% endblock title %}
+{% block custom_script %}{% endblock custom_script %}
+{% block content %}
+    <div class="container-fluid">
+        <div class="card dashboard-user-card shadow border-0 border-start border-5 border-danger rounded-3">
+            <div class="card-body fw-bold small text-end me-2">
+                 <i class="bi bi-people-fill"></i> {{ request.user.username }} | <span class="text-warning fw-bolder">{{ role_text }}</span>
+            </div>
+        </div>
+    </div>
+{% endblock content %}
+{% block custom_bottom_script %}{% endblock custom_bottom_script %}

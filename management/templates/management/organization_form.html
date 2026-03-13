@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+{% load static %}
+{% block title %}{{ block.super }} {% if editing %}Edit{% else %}Add{% endif %} Organizations {% endblock title %}
+{% block custom_script %}{% endblock custom_script %}
+{% block content %}
+    {% include 'management/helpers/sub_navbar.html' %}
+    <div class="container-fluid">
+        <div class="row mt-3 mb-3 align-items-center">
+            <div class="col-auto">
+                <a href="{% url 'organizations' %}" class="btn btn-outline-dark rounded-circle d-flex align-items-center justify-content-center p-0" style="width: 32px; height: 32px;" title="Back to Management">
+                    <i class="bi bi-arrow-left fs-5"></i>
+                </a>
+            </div>
+            <div class="col">
+                <div class="h5 fw-bold">
+                    {% if editing %}Edit{% else %}Add{% endif %} Organizations
+                </div>
+            </div>
+        </div>
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card shadow border-0 border-start {% if editing %}border-danger{% else %}border-dark{% endif %} border-5 management-home-card-bg">
+                    {% if not editing %}
+                        <div class="card-header bg-dark-subtle border-bottom-0 pt-3 pb-0">
+                            <ul class="nav nav-tabs" id="orgTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active fw-bold text-dark text-tab" id="single-tab" data-bs-toggle="tab" data-bs-target="#single" type="button" role="tab">Single Entry</button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link fw-bold text-dark text-tab" id="json-file-tab" data-bs-toggle="tab" data-bs-target="#json-file" type="button" role="tab">JSON Upload</button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link fw-bold text-dark text-tab" id="json-text-tab" data-bs-toggle="tab" data-bs-target="#json-text" type="button" role="tab">JSON Text</button>
+                                </li>
+                            </ul>
+                        </div>
+                    {% endif %}
+                    <div class="card-body management-home-card-bg p-4">
+                        <div class="tab-content" id="orgTabsContent">
+                            <div class="tab-pane fade show active  management-home-card-bg" id="single" role="tabpanel">
+                                <form method="post" action="{% if editing %}?org_id={{ org_id }}{% endif %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="submission_type" value="single">
+                                    <div class="row">
+                                        <div class="col-md-3 management-home-card-bg">
+                                            <label class="form-label fw-bold">Market *</label>
+                                            <div class="d-flex justify-content-end gap-2">
+                                            {% if form.market.errors %}
+                                                {% render_field form.market class="form-select form-select-sm border-dark border-1 is-invalid" %}
+                                                <div class="text-danger small mt-1">{{ form.market.errors|striptags }}</div>
+                                            {% else %}
+                                                {% render_field form.market class="form-select form-select-sm border-dark border-1" %}
+                                            {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label fw-bold">Organization Name *</label>
+                                            <div class="d-flex justify-content-end gap-2">
+                                            {% if form.name.errors %}
+                                                {% render_field form.name class="form-control form-control-sm border-dark border-1 is-invalid" %}
+                                                <div class="text-danger small mt-1">{{ form.name.errors|striptags }}</div>
+                                            {% else %}
+                                                {% render_field form.name class="form-control form-control-sm border-dark border-1" %}
+                                            {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="d-flex justify-content-end gap-2 mt-4">
+                                                <a href="{% url 'organizations' %}" class="btn btn-outline-danger">Cancel</a>
+                                                <button type="submit" class="btn btn-outline-dark">{% if editing %}Save Changes{% else %}Create Organization{% endif %}</button>
+                                                {% if not editing %}
+                                                    <button type="submit" name="save_and_add" class="btn btn-outline-success">Save and Add Another</button>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </form>
+                            </div>
+                            {% if not editing %}
+                                <div class="tab-pane fade" id="json-file" role="tabpanel">
+                                    <div class="alert alert-info small">
+                                        <i class="bi bi-info-circle-fill me-1"></i> Upload a JSON file mapping Market Codes to an array of Organization names. Ensure your markets are configured with the correct <code>code</code> beforehand.
+                                    </div>
+                                    <form method="post" enctype="multipart/form-data">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="submission_type" value="json_file">
+                                        <div id="drop-zone" class="border border-2 border-dashed border-dark rounded p-5 text-center mb-4" style="cursor: pointer; transition: background-color 0.2s;">
+                                            <i class="bi bi-cloud-arrow-up text-dark" style="font-size: 3rem;"></i>
+                                            <div class="h5 mt-3 fw-bold text-dark">Drag & Drop your JSON file here</div>
+                                            <div class="text-muted mb-0">or click to browse</div>
+                                            <input type="file" name="json_file" id="json_file_input" accept=".json" class="d-none" required>
+                                        </div>
+                                        <div id="file-name-display" class="text-success fw-bold text-center mb-3"></div>
+                                        <div class="d-flex justify-content-end gap-2">
+                                            <button type="submit" class="btn btn-dark px-4"><i class="bi bi-upload me-1"></i> Process File</button>
+                                        </div>
+                                    </form>
+                                </div>
+
+                                <div class="tab-pane fade" id="json-text" role="tabpanel">
+                                    <div class="alert alert-info small">
+                                        <i class="bi bi-info-circle-fill me-1"></i> Paste your JSON payload directly below.
+                                    </div>
+                                    <form method="post">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="submission_type" value="json_text">
+                                        <div class="mb-4">
+                                            <textarea name="json_text" class="form-control form-control-sm font-monospace border-dark" rows="10" placeholder='{"US": ["Org1", "Org2"], "IT": ["Org3"]}' required style="resize: none"></textarea>
+                                        </div>
+
+                                        <div class="d-flex justify-content-end gap-2">
+                                            <button type="submit" class="btn btn-dark px-4"><i class="bi bi-lightning-charge me-1"></i> Process JSON</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock content %}
+{% block custom_bottom_script %}
+    {{ block.super }}
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const dropZone = document.getElementById('drop-zone');
+            const fileInput = document.getElementById('json_file_input');
+            const fileDisplay = document.getElementById('file-name-display');
+
+            if(dropZone && fileInput) {
+                // Click to open file dialog
+                dropZone.addEventListener('click', () => fileInput.click());
+
+                // Handle Drag events
+                ['dragover', 'dragenter'].forEach(eventName => {
+                    dropZone.addEventListener(eventName, (e) => {
+                        e.preventDefault();
+                        dropZone.classList.remove('bg-light');
+                        dropZone.classList.add('bg-white', 'border-success');
+                    });
+                });
+
+                ['dragleave', 'dragend', 'drop'].forEach(eventName => {
+                    dropZone.addEventListener(eventName, (e) => {
+                        e.preventDefault();
+                        dropZone.classList.add('bg-light');
+                        dropZone.classList.remove('bg-white', 'border-success');
+                    });
+                });
+
+                // Handle Drop
+                dropZone.addEventListener('drop', (e) => {
+                    const files = e.dataTransfer.files;
+                    if (files.length) {
+                        fileInput.files = files; // Assign files to input
+                        updateFileDisplay(files[0].name);
+                    }
+                });
+
+                // Handle manual select
+                fileInput.addEventListener('change', function() {
+                    if (this.files.length) {
+                        updateFileDisplay(this.files[0].name);
+                    }
+                });
+
+                function updateFileDisplay(name) {
+                    fileDisplay.innerHTML = `<i class="bi bi-file-earmark-check-fill"></i> Selected File: ${name}`;
+                    dropZone.classList.add('border-success');
+                }
+            }
+        });
+    </script>
+{% endblock custom_bottom_script %}
