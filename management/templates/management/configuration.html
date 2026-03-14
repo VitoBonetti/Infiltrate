@@ -78,6 +78,12 @@
                                         {{ form.kpi_target_as_a_service }}
                                         <small class="form-text text-muted">{{ form.kpi_target_as_a_service.help_text }}</small>
                                     </div>
+                                    <div class="h5 text-dark  pb-2">Critical App CIA Score</div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Minimum CIA Score</label>
+                                        {{ form.cia_critical_app }}
+                                        <small class="form-text text-muted">{{ form.cia_critical_app.help_text }}</small>
+                                    </div>
                                 </div>
                                 <div class="mt-4 d-flex justify-content-end">
                                     <button type="submit" class="btn btn-outline-dark px-4">Save Configuration</button>

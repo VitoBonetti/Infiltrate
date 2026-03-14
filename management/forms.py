@@ -76,6 +76,7 @@ class AssetForm(ModelForm):
         exclude = ['uuid', 'is_kpi']
         widgets = {
             'internet_facing': CheckboxInput(),
+            'is_pentest_queue': CheckboxInput(),
         }
 
     def __init__(self, *args, **kwargs):

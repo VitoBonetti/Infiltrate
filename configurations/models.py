@@ -52,6 +52,11 @@ class PlatformConfiguration(SingletonModel):
         help_text="Comma-separated As-A-Service values to include."
     )
 
+    cia_critical_app = models.IntegerField(
+        default=8,
+        help_text="Minimum CIA score (e.g., 8)."
+    )
+
     class Meta:
         verbose_name = "Platform Configuration"
         verbose_name_plural = "Platform Configuration"

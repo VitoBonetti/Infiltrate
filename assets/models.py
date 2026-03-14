@@ -85,6 +85,7 @@ class Asset(models.Model):
     master_record = models.CharField(null=True, blank=True)
     is_kpi = models.BooleanField(default=False)
     is_pentest_queue = models.BooleanField(default=False)
+    is_critical_app = models.BooleanField(default=False)
 
     def calculate_is_kpi(self):
         """
@@ -135,6 +136,18 @@ class Asset(models.Model):
 
         return all(results.values())
 
+
+    def calculate_critical_app(self):
+        from configurations.models import PlatformConfiguration
+        config = PlatformConfiguration.load()
+
+        if self.is_kpi:
+            if self.cia_score >= config.cia_critical_app:
+                return True
+            return False
+        return False
+
+
     def save(self, *args, **kwargs):
         # check if the asset is new
         is_new_asset = self._state.adding
@@ -145,6 +158,10 @@ class Asset(models.Model):
         # If it's a new asset and in KPI, set pentest queue to True
         if is_new_asset and self.is_kpi:
             self.is_pentest_queue = True
+
+        self.is_critical_app = self.calculate_critical_app()
+
+
 
         update_fields = kwargs.get('update_fields')
         if update_fields is not None:

@@ -55,13 +55,34 @@
         <div class="card shadow mb-3 border-dark management-home-card-bg">
             <div class="card-body p-3">
                 <form method="get" class="row g-2 align-items-center">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="input-group input-group-sm">
                             <span class="input-group-text border-0 text-dark"><i class="bi bi-search"></i></span>
                             <input type="text" name="search" class="form-control form-control-sm border-dark" placeholder="Search asset name..." value="{{ search_query }}">
                         </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-1">
+                        <select name="is_kpi_filter" class="form-select form-select-sm border-dark">
+                            <option value="">All KPI</option>
+                            <option value="true" {% if is_kpi_filter == 'true' %}selected{% endif %}>In KPI</option>
+                            <option value="false" {% if is_kpi_filter == 'false' %}selected{% endif %}>Out KPI</option>
+                        </select>
+                    </div>
+                    <div class="col-md-1">
+                        <select name="is_pentest_queue" class="form-select form-select-sm border-dark">
+                            <option value="">All Queue</option>
+                            <option value="true" {% if is_pentest_queue == 'true' %}selected{% endif %}>Pentest Queue</option>
+                            <option value="false" {% if is_pentest_queue == 'false' %}selected{% endif %}>No Pentest Queue</option>
+                        </select>
+                    </div>
+                    <div class="col-md-1">
+                        <select name="is_critical_app" class="form-select form-select-sm border-dark">
+                            <option value="">All Level</option>
+                            <option value="true" {% if is_critical_app == 'true' %}selected{% endif %}>Critical App</option>
+                            <option value="false" {% if is_critical_app == 'false' %}selected{% endif %}>No Critical App</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
                         <select name="org" class="form-select form-select-sm border-dark">
                             <option value="">All Organizations</option>
                             {% for org in organizations %}
@@ -69,7 +90,7 @@
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <select name="sort" class="form-select form-select-sm border-dark">
                             <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Name (A-Z)</option>
                             <option value="-name" {% if sort_by == '-name' %}selected{% endif %}>Name (Z-A)</option>
@@ -103,15 +124,17 @@
                             <thead>
                                 <tr>
                                     {% if can_delete %}
-                                    <th class="ps-3 custom-card-header" style="width: 40px;">
+                                    <th class="ps-3 custom-card-header" style="width: 2%;">
                                         <input type="checkbox" id="selectAll" class="form-check-input border-dark">
                                     </th>
                                     {% endif %}
-                                    <th class="{% if not can_delete %}ps-3{% endif %} custom-card-header">Asset Details</th>
-                                    <th class="custom-card-header">Organization</th>
-                                    <th class="custom-card-header">Type</th>
-                                    <th class="custom-card-header">Status</th>
-                                    <th class="custom-card-header">Queue</th>
+                                    <th class="{% if not can_delete %}ps-3{% endif %} custom-card-header" style="width: 18%;">Asset</th>
+                                    <th class="custom-card-header" style="width: 25%;">Organization</th>
+                                    <th class="custom-card-header" style="width: 20%;">Type</th>
+                                    <th class="text-center custom-card-header" style="width: 5%;">Status</th>
+                                    <th class="text-center custom-card-header" style="width: 5%;">KPI</th>
+                                    <th class="text-center custom-card-header" style="width: 5%;">Queue</th>
+                                    <th class="text-center custom-card-header" style="width: 5%;">Critical</th>
                                     <th class="text-end pe-3 custom-card-header">Actions</th>
                                 </tr>
                             </thead>
@@ -132,7 +155,7 @@
                                             <div class="small fst-italic">{{ a.organization.market.market }}</div>
                                         </td>
                                         <td>{{ a.get_asset_type_display|default:"—" }}</td>
-                                        <td>
+                                        <td class="text-center ">
                                             {% if a.asset_status|lower == 'active' %}
                                                 <span class="badge bg-success rounded-pill">Active</span>
                                             {% elif a.asset_status|lower == 'pending' %}
@@ -143,11 +166,25 @@
                                                 <span class="badge bg-dark border border-secondary text-light">{{ a.asset_status|default:"Unknown" }}</span>
                                             {% endif %}
                                         </td>
-                                        <td>
+                                        <td class="text-center ">
+                                            {%  if a.is_kpi %}
+                                                <i class="bi bi-check-circle-fill text-success"></i>
+                                            {% else %}
+                                                <i class="bi bi-x-circle-fill text-danger"></i>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center ">
                                             {%  if a.is_pentest_queue %}
                                                 <i class="bi bi-check-circle-fill text-success"></i>
                                             {% else %}
                                                 <i class="bi bi-x-circle-fill text-danger"></i>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center ">
+                                            {%  if a.is_critical_app %}
+                                                <i class="bi bi-exclamation-triangle-fill text-danger"></i>
+                                            {% else %}
+                                                <i class="bi bi-exclamation-triangle-fill text-secondary"></i>
                                             {% endif %}
                                         </td>
                                         <td class="text-end pe-3">
@@ -186,7 +223,7 @@
                                     </tr>
                                 {% empty %}
                                     <tr>
-                                        <td colspan="6" class="text-center py-4 text-muted">No assets found matching your criteria.</td>
+                                        <td colspan="9" class="text-center py-4 text-muted">No assets found matching your criteria.</td>
                                     </tr>
                                 {% endfor %}
                             </tbody>

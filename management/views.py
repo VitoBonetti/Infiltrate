@@ -987,6 +987,25 @@ class AssetListView(ManagementAccessMixin, View):
         if org_filter:
             queryset = queryset.filter(organization__uuid=org_filter)
 
+        is_kpi_filter = request.GET.get('is_kpi_filter', '')
+        if is_kpi_filter == 'true':
+            queryset = queryset.filter(is_kpi=True)
+        elif is_kpi_filter == 'false':
+            queryset = queryset.filter(is_kpi=False)
+
+        is_pentest_queue = request.GET.get('is_pentest_queue', '')
+        if is_pentest_queue == 'true':
+            queryset = queryset.filter(is_pentest_queue=True)
+        elif is_pentest_queue == 'false':
+            queryset = queryset.filter(is_pentest_queue=False)
+
+        is_critical_app = request.GET.get('is_critical_app', '')
+        if is_critical_app == 'true':
+            queryset = queryset.filter(is_critical_app=True)
+        elif is_critical_app == 'false':
+            queryset = queryset.filter(is_critical_app=False)
+
+
         sort_by = request.GET.get('sort', 'name')
         valid_sorts = ['name', '-name', 'organization__name', '-organization__name', 'asset_type', '-asset_type', 'asset_status', '-asset_status']
         if sort_by in valid_sorts:
@@ -1010,6 +1029,9 @@ class AssetListView(ManagementAccessMixin, View):
             'org_filter': org_filter,
             'organizations': organizations,
             'sort_by': sort_by,
+            'is_kpi_filter': is_kpi_filter,
+            'is_pentest_queue': is_pentest_queue,
+            'is_critical_app': is_critical_app,
             'total_assets': total_assets,
             'total_kpi_assets': total_kpi_assets,
             'total_queue_assets': total_queue_assets,
