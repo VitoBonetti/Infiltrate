@@ -68,8 +68,9 @@
                             <li><a class="dropdown-item {% if 'asset' in request.resolver_match.url_name %}select-menu-bg fw-bold{% endif %}" href="{% url 'assets' %}"><i class="bi bi-pc-display me-2 {% if 'asset' not in request.resolver_match.url_name %}text-danger{% endif %}"></i> Assets</a></li>
                             <li><hr class="dropdown-divider border-dark"></li>
                             <li><a class="dropdown-item {% if 'configuration_settings' in request.resolver_match.url_name %}select-menu-bg fw-bold{% endif %}" href="{% url 'configuration_settings' %}"><i class="bi bi-gear {% if 'configuration_settings' not in request.resolver_match.url_name %}text-warning{% endif %}"></i> Configurations</a></li>
+                            <li><a class="dropdown-item {% if 'indicator' in request.resolver_match.url_name %}select-menu-bg fw-bold{% endif %}" href="{% url 'indicators' %}"><i class="bi bi-palette2 {% if 'indicator' not in request.resolver_match.url_name %}text-success{% endif %}"></i> Indicators</a></li>
                             <li><hr class="dropdown-divider border-dark"></li>
-                            <li><a class="dropdown-item {% if 'user' in request.resolver_match.url_name %}select-menu-bg fw-bold{% endif %}" href="{% url 'users' %}"><i class="bi bi-people-fill {% if 'user' not in request.resolver_match.url_name %}text-success{% endif %}"></i> Users</a></li>
+                            <li><a class="dropdown-item {% if 'user' in request.resolver_match.url_name %}select-menu-bg fw-bold{% endif %}" href="{% url 'users' %}"><i class="bi bi-people-fill {% if 'user' not in request.resolver_match.url_name %}text-primary{% endif %}"></i> Users</a></li>
                         </ul>
                     </li>
                 {% endif %}

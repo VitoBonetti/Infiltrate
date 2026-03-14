@@ -1,4 +1,6 @@
 from django.urls import path
+
+from indicators.models import Flags
 from .views import (
     ManagementHomeView,
     RegionView,
@@ -11,7 +13,9 @@ from .views import (
     UserRoleView,
     AssetListView,
     AssetFormView,
-    ConfigurationUpdateView
+    ConfigurationUpdateView,
+    TagsView,
+    IndicatorsView, FlagsView
 )
 
 urlpatterns = [
@@ -27,4 +31,7 @@ urlpatterns = [
     path('assets/', AssetListView.as_view(), name='assets'),
     path('assets/form/', AssetFormView.as_view(), name='asset_form'),
     path("configuration/", ConfigurationUpdateView.as_view(), name="configuration_settings"),
+    path('tags/', TagsView.as_view(), name='indicator_tags'),
+    path('flags/', FlagsView.as_view(), name='indicator_flags'),
+    path('indicators/', IndicatorsView.as_view(), name='indicators'),
 ]

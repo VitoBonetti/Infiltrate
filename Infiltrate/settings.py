@@ -49,7 +49,8 @@ INSTALLED_APPS = [
     'rbac.apps.RbacConfig',
     'regions.apps.RegionsConfig',
     'tests.apps.TestsConfig',
-    'vulns.apps.VulnsConfig'
+    'vulns.apps.VulnsConfig',
+    'indicators.apps.IndicatorsConfig'
 ]
 
 MIDDLEWARE = [

@@ -17,6 +17,9 @@
     <a class="flex-sm-fill text-sm-center nav-link {% if 'configuration_settings' in request.resolver_match.url_name %}active sub-navbar-selected text-dark fw-bold shadow-sm{% else %}text-light{% endif %}" href="{% url 'configuration_settings' %}">
         <i class="bi bi-gear me-1"></i> Configurations
     </a>
+    <a class="flex-sm-fill text-sm-center nav-link {% if 'indicator' in request.resolver_match.url_name %}active sub-navbar-selected text-dark fw-bold shadow-sm{% else %}text-light{% endif %}" href="{% url 'indicators' %}">
+        <i class="bi bi-palette2 me-1"></i> Indicators
+    </a>
     <a class="flex-sm-fill text-sm-center nav-link {% if 'user' in request.resolver_match.url_name %}active sub-navbar-selected text-dark fw-bold shadow-sm{% else %}text-light{% endif %}" href="{% url 'users' %}">
         <i class="bi bi-people-fill"></i> Users
     </a>

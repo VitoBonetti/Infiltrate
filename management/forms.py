@@ -1,4 +1,4 @@
-from django.forms import ModelForm, CheckboxInput
+from django.forms import ModelForm, CheckboxInput, TextInput
 from regions.models import Regions
 from markets.models import Market
 from organizations.models import Organization
@@ -6,6 +6,7 @@ from accounts.models import User
 from rbac.models import RoleAssignment
 from assets.models import Asset
 from configurations.models import PlatformConfiguration
+from indicators.models import Tags, Flags
 
 
 class RegionsForm(ModelForm):
@@ -96,3 +97,20 @@ class ConfigurationForm(ModelForm):
         # Apply the same styling you use for your other forms
         for field in self.fields.values():
             field.widget.attrs['class'] = 'form-control form-control-sm border-1 border-dark rounded'
+
+
+class TagsForm(ModelForm):
+    class Meta:
+        model = Tags
+        exclude = ['uuid', 'created_at']
+        widgets = {
+            'text_color': TextInput(attrs={'type': 'color'}),
+            'background_color': TextInput(attrs={'type': 'color'}),
+        }
+
+
+
+class FlagsForm(ModelForm):
+    class Meta:
+        model = Flags
+        fields = ['flag', 'categories']

@@ -23,6 +23,7 @@ from rbac.models import RoleAssignment
 from accounts.models import User
 from assets.models import Asset
 from configurations.models import PlatformConfiguration
+from indicators.models import Tags, Flags
 from .forms import (
     RegionsForm,
     MarketForm,
@@ -31,6 +32,8 @@ from .forms import (
     RoleAssignmentForm,
     AssetForm,
     ConfigurationForm,
+    TagsForm,
+    FlagsForm
 )
 import json
 import jsonschema
@@ -226,6 +229,265 @@ class ManagementHomeView(ManagementAccessMixin, TemplateView):
         return ctx
 
 
+class IndicatorsView(ManagementAccessMixin, TemplateView):
+    template_name = "management/indicators.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context['tags_count'] = Tags.objects.count()
+        context['flags_count'] = Flags.objects.count()
+
+        # querying categories the actual counts
+        flag_cat_count = dict(Flags.objects.values_list('categories').annotate(count=Count('categories')))
+
+        # Build the list for the card in the indicators.html
+        flag_cat_cards = []
+        for choice, _ in Flags.CATEGORIES_CHOICES:
+            count = flag_cat_count.get(choice, 0)
+
+            # getting background color for the border of the card
+            _, bg_color = Flags.CATEGORY_COLORS.get(choice, ('#0C2B4E', '#FFFFFF'))
+
+            flag_cat_cards.append({
+                'name': choice,
+                'count': count,
+                'bg_color': bg_color,
+            })
+
+        context['flag_cat_cards'] = flag_cat_cards
+
+        return context
+
+
+class TagsView(ManagementAccessMixin, View):
+    template_name = "management/tags.html"
+
+    def get(self, request, *args, **kwargs):
+        tag_id = request.GET.get("tag_id")
+        if tag_id:
+            tag = get_object_or_404(Tags, uuid=tag_id)
+            tag_form = TagsForm(instance=tag)
+        else:
+            tag_form = TagsForm()
+
+        return self._render_page(request, tag_form, tag_id)
+
+    def post(self, request, *args, **kwargs):
+        if "delete_id" in request.POST:
+            if not admin_can_delete(request.user):
+                messages.error(request, "You do not have permission to delete tags.")
+                return redirect("indicator_tags")
+
+            try:
+                tag = get_object_or_404(Tags, uuid=request.POST["delete_id"])
+                tag.delete()
+                messages.success(request, "Tags deleted successfully.")
+            except Exception as e:
+                messages.error(request, f"Could not delete tag. Error: {str(e)}")
+            return redirect("indicator_tags")
+
+        action = request.POST.get("action")
+        selected_ids = request.POST.getlist("selected_items")
+
+        if action and selected_ids:
+            if not admin_can_write(request.user):
+                messages.error(request, "Permission denied.")
+                return redirect("indicator_tags")
+
+            if action == 'bulk_delete':
+                if not admin_can_delete(request.user):
+                    messages.error(request, "You do not have permission to delete.")
+                else:
+                    try:
+                        count, _ = Tags.objects.filter(uuid__in=selected_ids).delete()
+                        messages.success(request, f"Successfully deleted {count} tags.")
+                    except Exception as e:
+                        messages.error(request, f"Bulk delete failed. Error: {str(e)}")
+
+                return redirect("indicator_tags")
+
+        if not admin_can_write(request.user):
+            messages.error(request, "You do not have permission to modify tags.")
+            return redirect("indicator_tags")
+
+        tag_id = request.GET.get("tag_id")
+        if tag_id:
+            tag = get_object_or_404(Tags, uuid=tag_id)
+            form_tag = TagsForm(request.POST, instance=tag)
+        else:
+            form_tag = TagsForm(request.POST)
+
+        if form_tag.is_valid():
+            form_tag.save()
+            msg = "Tag updated successfully." if tag_id else "Tag created successfully."
+            messages.success(request, msg)
+            return redirect("indicator_tags")
+
+        for field, errors in form_tag.errors.items():
+            for error in errors:
+                messages.error(request,f"Validation Error: {error}")
+
+        # If form is invalid, re-render the page with errors
+        return self._render_page(request, form_tag, tag_id)
+
+    def _render_page(self, request, form_tag, tag_id=None):
+        # Base Queryset
+        queryset = Tags.objects.annotate(tag_count=Count('tag'))
+        # Search Filter
+        search_query = request.GET.get('search', '')
+        if search_query:
+            queryset = queryset.filter(tag__icontains=search_query)
+        # Sorting
+        sort_by = request.GET.get('sort', 'tag')
+        valid_sorts = ['tag', '-tag', '-created_at', 'created_at']
+        if sort_by in valid_sorts:
+            queryset = queryset.order_by(sort_by)
+        else:
+            queryset = queryset.order_by('tag')
+        # stats
+        total_count = queryset.count()
+
+        # Pagination
+        paginator = Paginator(queryset, 5)  # 25 items per page
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+
+        context = {
+            "page_obj": page_obj,
+            "search_query": search_query,  # Pass search back to template
+            "sort_by": sort_by,  # Pass sort back to template
+            "form_tag": form_tag,
+            "total_tags_count": total_count,
+            "editing": bool(tag_id),
+            "can_write": admin_can_write(request.user),
+            "can_delete": admin_can_delete(request.user),
+        }
+        return render(request, self.template_name, context)
+
+
+class FlagsView(ManagementAccessMixin, View):
+    template_name = "management/flags.html"
+
+    def get(self, request, *args, **kwargs):
+        flag_id = request.GET.get("flag_id")
+        if flag_id:
+            flag = get_object_or_404(Flags, uuid=flag_id)
+            flag_form = FlagsForm(instance=flag)
+        else:
+            flag_form = FlagsForm()
+
+        return self._render_page(request, flag_form, flag_id)
+
+    def post(self, request, *args, **kwargs):
+        if "delete_id" in request.POST:
+            if not admin_can_delete(request.user):
+                messages.error(request, "You do not have permission to delete flags.")
+                return redirect("indicator_flags")
+
+            try:
+                flag = get_object_or_404(Flags, uuid=request.POST["delete_id"])
+                flag.delete()
+                messages.success(request, "Flag deleted successfully.")
+            except Exception as e:
+                messages.error(request, f"Could not delete flag. Error: {str(e)}")
+            return redirect("indicator_flags")
+
+        action = request.POST.get("action")
+        selected_ids = request.POST.getlist("selected_items")
+
+        if action and selected_ids:
+            if not admin_can_write(request.user):
+                messages.error(request, "Permission denied.")
+                return redirect("indicator_flags")
+
+            if action == 'bulk_delete':
+                if not admin_can_delete(request.user):
+                    messages.error(request, "You do not have permission to delete.")
+                else:
+                    try:
+                        count, _ = Flags.objects.filter(uuid__in=selected_ids).delete()
+                        messages.success(request, f"Successfully deleted {count} flag.")
+                    except Exception as e:
+                        messages.error(request, f"Bulk delete failed. Error: {str(e)}")
+
+                return redirect("indicator_flags")
+
+        if not admin_can_write(request.user):
+            messages.error(request, "You do not have permission to modify flags.")
+            return redirect("indicator_flags")
+
+        flag_id = request.GET.get("flag_id")
+        if flag_id:
+            flag = get_object_or_404(Flags, uuid=flag_id)
+            form_flag = FlagsForm(request.POST, instance=flag)
+        else:
+            form_flag = FlagsForm(request.POST)
+
+        if form_flag.is_valid():
+            form_flag.save()
+            msg = "Flag updated successfully." if flag_id else "Tag created successfully."
+            messages.success(request, msg)
+            return redirect("indicator_flags")
+
+        for field, errors in form_flag.errors.items():
+            for error in errors:
+                messages.error(request,f"Validation Error: {error}")
+
+        # If form is invalid, re-render the page with errors
+        return self._render_page(request, form_flag, flag_id)
+
+    def _render_page(self, request, form_flag, flag_id=None):
+        # Base Queryset
+        queryset = Flags.objects.annotate(flag_count=Count('flag'))
+        # Search Filter
+        search_query = request.GET.get('search', '')
+        if search_query:
+            queryset = queryset.filter(flag__icontains=search_query)
+        # Sorting
+        sort_by = request.GET.get('sort', 'flag')
+        valid_sorts = ['flag', '-flag', '-created_at', 'created_at', 'categories', '-categories']
+        if sort_by in valid_sorts:
+            queryset = queryset.order_by(sort_by)
+        else:
+            queryset = queryset.order_by('flag')
+        # stats
+        total_count = queryset.count()
+
+        flag_cat_count = dict(Flags.objects.values_list('categories').annotate(count=Count('categories')))
+        flag_cat_cards = []
+        for choice, _ in Flags.CATEGORIES_CHOICES:
+            count = flag_cat_count.get(choice, 0)
+
+            # getting background color for the border of the card
+            text_color, bg_color = Flags.CATEGORY_COLORS.get(choice, ('#0C2B4E', '#FFFFFF'))
+
+            flag_cat_cards.append({
+                'name': choice,
+                'count': count,
+                'text_color': text_color,
+                'bg_color': bg_color,
+            })
+
+        # Pagination
+        paginator = Paginator(queryset, 5)  # 25 items per page
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+
+        context = {
+            "page_obj": page_obj,
+            "search_query": search_query,  # Pass search back to template
+            "sort_by": sort_by,  # Pass sort back to template
+            "form_flag": form_flag,
+            "total_flags_count": total_count,
+            "flag_cat_cards": flag_cat_cards,
+            "editing": bool(flag_id),
+            "can_write": admin_can_write(request.user),
+            "can_delete": admin_can_delete(request.user),
+        }
+        return render(request, self.template_name, context)
+
+
 class RegionView(ManagementAccessMixin, View):
     template_name = "management/regions.html"
 
@@ -336,7 +598,7 @@ class RegionView(ManagementAccessMixin, View):
         total_count = queryset.count()
 
         # 4. Pagination
-        paginator = Paginator(queryset, 10)  # 10 items per page
+        paginator = Paginator(queryset, 25)  # 10 items per page
         page_number = request.GET.get('page')
         page_obj = paginator.get_page(page_number)
 

@@ -27,7 +27,7 @@ body {
 }
 .select-menu-bg {
     background-color: #FF714B !important;
-    color: #FFFFFF;
+    color: #0C2B4E;
 }
 .sub-navbar {
     background-color: #0C2B4E !important;
@@ -39,6 +39,9 @@ body {
 }
 .management-home-card-bg {
     background-color: #FCF8F8 !important;
+}
+.alert-card-title-bg {
+    background-color: #C00707 !important;
 }
 .custom-card-header {
     background-color: #FF714B !important;
