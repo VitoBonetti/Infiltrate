@@ -2,7 +2,10 @@
 {% load widget_tweaks %}
 {% load static %}
 {% block title %}{{ block.super }} Regions {% endblock title %}
-{% block custom_script %}{% endblock custom_script %}
+{% block custom_script %}
+    <link rel="stylesheet" href="{% static 'css/select2.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/select2-bootstrap-5-theme.min.css' %}">
+{% endblock custom_script %}
 {% block content %}
     {% include 'management/helpers/sub_navbar.html' %}
     <div class="container-fluid">
@@ -48,14 +51,35 @@
                         {% if can_write %}
                             <form method="post" action="{% if editing %}?region_id={{ request.GET.region_id }}{% endif %}">
                                 {% csrf_token %}
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold">Region Name *</label>
-                                    {% if form_region.region.errors %}
-                                        {% render_field form_region.region class="form-control form-control-sm border-1 border-dark is-invalid" placeholder="e.g. North America" %}
-                                        <div class="text-danger small mt-1">{{ form_region.region.errors|striptags }}</div>
-                                    {% else %}
-                                        {% render_field form_region.region class="form-control form-control-sm border-1 border-dark" placeholder="e.g. North America" %}
-                                    {% endif %}
+                                <div class="row mb-4">
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold">Region Name *</label>
+                                        {% if form_region.region.errors %}
+                                            {% render_field form_region.region class="form-control form-control-sm border-1 border-dark is-invalid" placeholder="e.g. North America" %}
+                                            <div class="text-danger small mt-1">{{ form_region.region.errors|striptags }}</div>
+                                        {% else %}
+                                            {% render_field form_region.region class="form-control form-control-sm border-1 border-dark" placeholder="e.g. North America" %}
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold">Tags</label>
+                                        {% if form_region.tags.errors %}
+                                            {% render_field form_region.tags class="form-select form-select-sm select2-multiple border-1 border-dark is-invalid" %}
+                                            <div class="text-danger small mt-1">{{ form_region.tags.errors|striptags }}</div>
+                                        {% else %}
+                                            {% render_field form_region.tags class="form-select form-select-sm select2-multiple border-1 border-dark" %}
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold">Flags</label>
+                                        {% if form_region.flags.errors %}
+                                            {% render_field form_region.flags class="form-select form-select-sm select2-multiple border-1 border-dark is-invalid" %}
+                                            <div class="text-danger small mt-1">{{ form_region.flags.errors|striptags }}</div>
+                                        {% else %}
+                                            {% render_field form_region.flags class="form-select form-select-sm select2-multiple border-1 border-dark" %}
+                                        {% endif %}
+                                    </div>
+
                                 </div>
                                 <div class="mb-4 form-check form-switch">
                                     {% render_field form_region.active class="form-check-input" %}
@@ -147,7 +171,7 @@
                                                         <input type="checkbox" name="selected_items" value="{{ r.uuid }}" class="form-check-input item-checkbox border-dark">
                                                     </td>
                                                 {% endif %}
-                                                <td class="{% if not can_write %}ps-3{% endif %} fw-bold">{{ r.region }}</td>
+                                                <td class="{% if not can_write %}ps-3{% endif %} fw-bold">{{ r.region }} {% if r.flags.all %} <span class="text-warning"><i class="bi bi-exclamation-octagon-fill"></i></span>{% endif %}</td>
                                                 <td class="text-center">
                                                     {% if r.active %}
                                                         <span class="badge bg-success rounded-pill">Active</span>
@@ -218,4 +242,17 @@
 {% block custom_bottom_script %}
     {{ block.super }}
     <script src="{% static 'js/bulk_select_all.js' %}"></script>
+    <script src="{% static 'js/jquery-3.7.1.min.js' %}"></script>
+    <script src="{% static 'js/select2.min.js' %}"></script>
+    <script>
+        $(document).ready(function() {
+            // Initialize Select2 on your multiselect fields
+            $('.select2-multiple').select2({
+                theme: 'bootstrap-5', // Makes it look like Bootstrap
+                placeholder: "Select items...",
+                allowClear: true,
+                width: '100%' // Ensures it fills the Bootstrap column
+            });
+        });
+    </script>
 {% endblock custom_bottom_script %}

@@ -147,7 +147,7 @@
                                         </td>
                                         {% endif %}
                                         <td class="{% if not can_delete %}ps-3{% endif %}">
-                                            <div class="fw-bold">{{ a.name }}</div>
+                                            <div class="fw-bold">{{ a.name }} {% if a.flags.all %} <span class="text-warning"><i class="bi bi-exclamation-octagon-fill" title="Flag Indicators"></i></span>{% endif %}</div>
                                             <div class="small fst-italic">ID: {{ a.ID|default:"—" }}</div>
                                         </td>
                                         <td>

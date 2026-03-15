@@ -2,6 +2,7 @@ from django.db import models
 from django.core.files.base import ContentFile
 import uuid as _uuid
 from management.validators import validate_file_size, validate_image_magic_bytes
+from indicators.models import Tags, Flags
 from io import BytesIO
 from PIL import Image
 from django.db.models.signals import post_delete, pre_save
@@ -20,6 +21,8 @@ class Market(models.Model):
     key_market = models.BooleanField(default=False)
     flag_icons = models.ImageField(blank=True, null=True, upload_to="market_icons", validators=[validate_file_size, validate_image_magic_bytes])
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    tags = models.ManyToManyField(Tags, blank=True, related_name='market_tags')
+    flags = models.ManyToManyField(Flags, blank=True, related_name='market_flags')
 
 
     class Meta:

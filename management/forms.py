@@ -1,4 +1,4 @@
-from django.forms import ModelForm, CheckboxInput, TextInput
+from django.forms import ModelForm, CheckboxInput, TextInput, SelectMultiple
 from regions.models import Regions
 from markets.models import Market
 from organizations.models import Organization
@@ -12,7 +12,11 @@ from indicators.models import Tags, Flags
 class RegionsForm(ModelForm):
     class Meta:
         model = Regions
-        fields = ['region', 'active']
+        fields = ['region', 'active', 'tags', 'flags']
+        widgets = {
+            'tags': SelectMultiple(),
+            'flags': SelectMultiple(),
+        }
 
 
 class MarketForm(ModelForm):
@@ -20,14 +24,23 @@ class MarketForm(ModelForm):
         model = Market
         fields = [
             'region', 'market', 'code', 'language',
-            'active', 'key_market', 'description', 'flag_icons'
+            'active', 'key_market', 'description', 'flag_icons',
+            'tags', 'flags'
         ]
+        widgets = {
+            'tags': SelectMultiple(),
+            'flags': SelectMultiple(),
+        }
 
 
 class OrganizationForm(ModelForm):
     class Meta:
         model = Organization
-        fields = ['market', 'name']
+        fields = ['market', 'name', 'tags', 'flags']
+        widgets = {
+            'tags': SelectMultiple(),
+            'flags': SelectMultiple(),
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -76,6 +89,8 @@ class AssetForm(ModelForm):
         model = Asset
         exclude = ['uuid', 'is_kpi']
         widgets = {
+            'tags': SelectMultiple(),
+            'flags': SelectMultiple(),
             'internet_facing': CheckboxInput(),
             'is_pentest_queue': CheckboxInput(),
         }

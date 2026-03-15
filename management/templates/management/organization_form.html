@@ -2,7 +2,10 @@
 {% load widget_tweaks %}
 {% load static %}
 {% block title %}{{ block.super }} {% if editing %}Edit{% else %}Add{% endif %} Organizations {% endblock title %}
-{% block custom_script %}{% endblock custom_script %}
+{% block custom_script %}
+    <link rel="stylesheet" href="{% static 'css/select2.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/select2-bootstrap-5-theme.min.css' %}">
+{% endblock custom_script %}
 {% block content %}
     {% include 'management/helpers/sub_navbar.html' %}
     <div class="container-fluid">
@@ -43,6 +46,8 @@
                                     {% csrf_token %}
                                     <input type="hidden" name="submission_type" value="single">
                                     <div class="row">
+                                        <div class="col-6"><div class="h6 fw-bold mb-3 text-uppercase tracking-wider border-bottom pb-2">1. Organization Identity</div></div>
+                                        <div class="col-md-6"><div class="h6 fw-bold mb-3 text-uppercase tracking-wider border-bottom pb-2">2. Platform Indicators</div></div>
                                         <div class="col-md-3 management-home-card-bg">
                                             <label class="form-label fw-bold">Market *</label>
                                             <div class="d-flex justify-content-end gap-2">
@@ -65,6 +70,25 @@
                                             {% endif %}
                                             </div>
                                         </div>
+                                        <div class="col-md-3 mb-3">
+                                            <label class="form-label fw-bold">Tags</label>
+                                            {% if form.tags.errors %}
+                                                {% render_field form.tags class="form-select form-select-sm select2-multiple border-1 border-dark is-invalid" %}
+                                                <div class="text-danger small mt-1">{{ form.tags.errors|striptags }}</div>
+                                            {% else %}
+                                                {% render_field form.tags class="form-select form-select-sm select2-multiple border-1 border-dark" %}
+                                            {% endif %}
+                                        </div>
+                                         <div class="col-md-3 mb-3">
+                                            <label class="form-label fw-bold">Flags</label>
+                                            {% if form.flags.errors %}
+                                                {% render_field form.flags class="form-select form-select-sm select2-multiple border-1 border-dark is-invalid" %}
+                                                <div class="text-danger small mt-1">{{ form.flags.errors|striptags }}</div>
+                                            {% else %}
+                                                {% render_field form.flags class="form-select form-select-sm select2-multiple border-1 border-dark" %}
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-6"></div>
                                         <div class="col-md-6">
                                             <div class="d-flex justify-content-end gap-2 mt-4">
                                                 <a href="{% url 'organizations' %}" class="btn btn-outline-danger">Cancel</a>
@@ -125,6 +149,20 @@
 {% endblock content %}
 {% block custom_bottom_script %}
     {{ block.super }}
+    <script src="{% static 'js/bulk_select_all.js' %}"></script>
+    <script src="{% static 'js/jquery-3.7.1.min.js' %}"></script>
+    <script src="{% static 'js/select2.min.js' %}"></script>
+    <script>
+        $(document).ready(function() {
+            // Initialize Select2 on your multiselect fields
+            $('.select2-multiple').select2({
+                theme: 'bootstrap-5', // Makes it look like Bootstrap
+                placeholder: "Select items...",
+                allowClear: true,
+                width: '100%' // Ensures it fills the Bootstrap column
+            });
+        });
+    </script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             const dropZone = document.getElementById('drop-zone');

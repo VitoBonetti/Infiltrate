@@ -140,7 +140,7 @@
                                                     <div class="border rounded text-center me-2 d-flex align-items-center justify-content-center shadow" style="width: 32px; height: 22px;">
                                                         <i class="bi bi-flag" style="font-size: 0.75rem;"></i>
                                                     </div>
-                                                {% endif %}&nbsp;{{ m.market }}
+                                                {% endif %}&nbsp;{{ m.market }} {% if m.flags.all %} <span class="text-warning">&nbsp;<i class="bi bi-exclamation-octagon-fill" title="Flag Indicators"></i></span>{% endif %}
                                             </div>
                                         </td>
                                         <td>{{ m.region.region }}</td>

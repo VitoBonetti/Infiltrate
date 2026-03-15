@@ -1,5 +1,6 @@
 from django.db import models
 import uuid as _uuid
+from indicators.models import Tags, Flags
 
 
 class Asset(models.Model):
@@ -86,6 +87,8 @@ class Asset(models.Model):
     is_kpi = models.BooleanField(default=False)
     is_pentest_queue = models.BooleanField(default=False)
     is_critical_app = models.BooleanField(default=False)
+    tags = models.ManyToManyField(Tags, blank=True, related_name='asset_tags')
+    flags = models.ManyToManyField(Flags, blank=True, related_name='asset_flags')
 
     def calculate_is_kpi(self):
         """

@@ -759,6 +759,8 @@ class MarketFormView(ManagementAccessMixin, View):
             market_instance = form.save(commit=False)
             market_instance.save()
 
+            form.save_m2m()
+
             msg = "Market updated successfully." if market_id else "Market created successfully."
             messages.success(request, msg)
 

@@ -107,7 +107,7 @@
                                         <input type="checkbox" name="selected_items" value="{{ o.uuid }}" class="form-check-input item-checkbox border-dark">
                                     </td>
                                     {% endif %}
-                                    <td class="{% if not can_delete %}ps-3{% endif %} fw-bold">{{ o.name }}</td>
+                                    <td class="{% if not can_delete %}ps-3{% endif %} fw-bold">{{ o.name }} {% if o.flags.all %} <span class="text-warning"><i class="bi bi-exclamation-octagon-fill" title="Flag Indicators"></i></span>{% endif %}</td>
                                     <td>{{ o.market.market }} <span class="small">({{ o.market.code }})</span></td>
                                     <td>{{ o.market.region.region }}</td>
                                     <td class="text-end pe-3">
