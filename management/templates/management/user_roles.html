@@ -1,8 +1,200 @@
 {% extends 'base.html' %}
+{% load widget_tweaks %}
 {% load static %}
 {% block title %}{{ block.super }} Manage Roles for {{ target_user.username }} {% endblock title %}
 {% block custom_script %}{% endblock custom_script %}
 {% block content %}
     {% include 'management/helpers/sub_navbar.html' %}
+    <div class="container-fluid">
+        <div class="row mt-3 mb-3 align-items-center">
+            <div class="col-auto">
+                <a href="{% url 'mng_users' %}" class="btn btn-outline-dark rounded-circle d-flex align-items-center justify-content-center p-0" style="width: 32px; height: 32px;" title="Back to Management">
+                    <i class="bi bi-arrow-left fs-5"></i>
+                </a>
+            </div>
+            <div class="col">
+                <div class="h5 fw-bold">
+                     Role Scopes: {{ target_user.first_name }} {{ target_user.last_name }}
+                </div>
+                <div class="text-muted fst-italic small mt-1">Manage access for {{ target_user.email }}</div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                {% if request.user.is_superuser and target_user != request.user %}
+                    <div class="card border border-1 border-info rounded bg-dark-subtle text-dark shadow mb-4">
+                        <div class="card-header fw-bold bg-info text-dark">
+                            <i class="bi bi-shield-lock-fill me-1"></i> Global Role Management
+                        </div>
+                        <div class="card-body">
+                            <div class="small mb-3">Promote or demote this user's global platform access level.</div>
+                            <form method="post" id="global-role-form">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    <select name="global_role" id="global-role-select" class="form-select form-select-sm border-dark" onchange="toggleRoleAlerts()">
+                                        <option value="standard" {% if not target_user.is_superuser and not target_user.is_platform_admin and not target_user.is_pentester %}selected{% endif %}>Standard User (Scoped)</option>
+                                        <option value="pentester" {% if target_user.is_pentester %}selected{% endif %}>Global Pentester (Tests & Vulns)</option>
+                                        <option value="admin" {% if target_user.is_platform_admin %}selected{% endif %}>Platform Admin (Global Read/Write)</option>
+                                        <option value="god" {% if target_user.is_superuser %}selected{% endif %}>GOD / Superuser (Absolute Power)</option>
+                                    </select>
+                                </div>
+                                <div id="god-alert" class="alert alert-danger small d-none border-danger shadow-sm">
+                                    <i class="bi bi-exclamation-triangle-fill fs-6 me-1"></i>
+                                    <strong>DANGER:</strong> You are granting this user GOD status. They will have absolute power over the platform.
+                                </div>
+                                <div id="admin-alert" class="alert alert-warning text-dark small d-none border-warning shadow-sm">
+                                    <i class="bi bi-shield-exclamation fs-6 me-1"></i>
+                                    <strong>WARNING:</strong> You are granting this user Admin status. They will have full global read/write access.
+                                </div>
+                                <button type="submit" id="global-submit-btn" class="btn btn-info w-100 fw-bold text-dark">Update Global Role</button>
+                            </form>
+                        </div>
+                    </div>
+                {% endif %}
+                <div class="card border border-1 border-dark rounded bg-secondary-subtle shadow">
+                    <div class="card-header fw-bold text-dark custom-card-header">
+                        Assign New Role Scope
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3 p-2 bg-dark-subtle rounded border border-secondary text-light">
+                            <div class="fw-bold text-dark fs-6 text-center">
+                                <i class="bi bi-person-fill me-1"></i>{{ target_user.username }} - <i class="bi bi-envelope-fill me-1"></i>{{ target_user.email }}
+                            </div>
+                        </div>
+                        {% if target_user.is_superuser or target_user.is_platform_admin %}
+                            <div class="alert alert-warning small border-warning text-dark">
+                                <i class="bi bi-shield-exclamation fs-5 me-1 align-middle"></i>
+                                <strong>{% if target_user.is_superuser %}GOD (Superuser){% else %}Platform Admin{% endif %}</strong><br>
+                                This user has global access. Scoped roles are redundant and do not apply.
+                            </div>
+                        {% else %}
+                            {% if can_write %}
+                                <form method="post">
+                                    {% csrf_token %}
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Role Level *</label>
+                                        {% render_field form.role class="form-select form-select-sm border-1 border-dark" %}
+                                    </div>
+                                    <hr>
+                                    <p class="small text-muted mb-2">Select <strong>ONLY ONE</strong> of the following scopes:</p>
+
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Region Scope</label>
+                                        {% render_field form.region class="form-select form-select-sm border-1 border-dark" %}
+                                    </div>
+                                    <div class="mb-3 text-center text-muted fw-bold">OR</div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Market Scope</label>
+                                        {% render_field form.market class="form-select form-select-sm border-1 border-dark" %}
+                                    </div>
+                                    <div class="mb-3 text-center text-muted fw-bold">OR</div>
+                                    <div class="mb-4">
+                                        <label class="form-label fw-bold">Organization Scope</label>
+                                        {% render_field form.organization class="form-select form-select-sm border-1 border-dark" %}
+                                    </div>
+
+                                    <button type="submit" class="btn btn-secondary w-100 fw-bold">Assign Scope</button>
+                                </form>
+                            {% else %}
+                                <div class="alert alert-secondary">You lack permissions to assign roles.</div>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-8">
+                 <div class="card border border-1 border-dark rounded shadow management-home-card-bg ">
+                    <div class="card-header custom-card-header fw-bold text-dark">
+                        Current Role Assignments
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-striped table-hover align-middle mb-0 mt-2">
+                                <thead>
+                                    <tr>
+                                        <th class="ps-3 bg-dark-subtle">Assigned Role</th>
+                                        <th class="bg-dark-subtle">Assigned Scope</th>
+                                        <th class="text-end pe-3 bg-dark-subtle">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for assignment in assignments %}
+                                    <tr>
+                                        <td class="ps-3 fw-bold">{{ assignment.get_role_display|default:assignment.role }}</td>
+                                        <td>
+                                            {% if assignment.region %}
+                                                <span class="badge bg-secondary">Region</span> {{ assignment.region.region }}
+                                            {% elif assignment.market %}
+                                                <span class="badge bg-secondary">Market</span> {{ assignment.market.market }}
+                                            {% elif assignment.organization %}
+                                                <span class="badge bg-secondary">Org</span> {{ assignment.organization.name }}
+                                            {% else %}
+                                                <span class="badge bg-danger">Global (Invalid Scope)</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-end pe-3">
+                                            {% if can_delete %}
+                                                {% if request.user.is_superuser or not target_user.is_superuser and not target_user.is_platform_admin %}
+                                                <form method="post" class="d-inline" onsubmit="return confirm('Remove this role scope?');">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="delete_assignment_id" value="{{ assignment.id }}">
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Remove Scope">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </form>
+                                                {% else %}
+                                                <span class="text-muted small"><i class="bi bi-lock-fill"></i> Locked</span>
+                                                {% endif %}
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="3" class="text-center py-4 text-muted">This user has no scoped role assignments.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                 </div>
+            </div>
+        </div>
+    </div>
 {% endblock content %}
-{% block custom_bottom_script %}{% endblock custom_bottom_script %}
+{% block custom_bottom_script %}
+{{ block.super }}
+<script>
+    function toggleRoleAlerts() {
+        const select = document.getElementById('global-role-select');
+        const godAlert = document.getElementById('god-alert');
+        const adminAlert = document.getElementById('admin-alert');
+        const submitBtn = document.getElementById('global-submit-btn');
+
+        // Find out what the user currently is so we don't warn if nothing changed
+        const originalRole = "{% if target_user.is_superuser %}god{% elif target_user.is_platform_admin %}admin{% else %}standard{% endif %}";
+
+        // Reset the UI
+        if(godAlert) godAlert.classList.add('d-none');
+        if(adminAlert) adminAlert.classList.add('d-none');
+        if(submitBtn) {
+            submitBtn.classList.remove('btn-danger', 'btn-warning');
+            submitBtn.classList.add('btn-info');
+            submitBtn.innerText = 'Update Global Role';
+        }
+
+        // Apply Bootstrap Alerts if the role is changing to something dangerous
+        if (select && select.value !== originalRole) {
+            if (select.value === 'god') {
+                godAlert.classList.remove('d-none');
+                submitBtn.classList.replace('btn-info', 'btn-danger');
+                submitBtn.innerText = 'Confirm GOD Promotion';
+            } else if (select.value === 'admin') {
+                adminAlert.classList.remove('d-none');
+                submitBtn.classList.replace('btn-info', 'btn-warning');
+                submitBtn.innerText = 'Confirm Admin Promotion';
+            }
+        }
+    }
+</script>
+{% endblock %}

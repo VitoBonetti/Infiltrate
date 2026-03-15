@@ -143,7 +143,7 @@
                         </div>
                     </div>
                     <div class="card-footer bg-transparent border-0 pb-3 pt-0 text-center">
-                        <a href="{% url 'users' %}" class="btn btn-sm btn-outline-dark w-100 stretched-link fw-bold">Manage</a>
+                        <a href="{% url 'mng_users' %}" class="btn btn-sm btn-outline-dark w-100 stretched-link fw-bold">Manage</a>
                     </div>
                 </div>
             </div>
@@ -166,6 +166,29 @@
                     </div>
                     <div class="card-footer bg-transparent border-0 pb-3 pt-0 text-center">
                         <a href="{% url 'configuration_settings' %}" class="btn btn-sm btn-outline-dark w-100 stretched-link fw-bold">Manage</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card management-home-card-bg shadow h-100 border-0 border-start border-5 border-danger">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3 border-0 border-bottom border-secondary border-2">
+                            <div class="h5 card-title mb-0 fw-bold fs-6">Indicator</div>
+                            <div class="bi bi-palette2 fs-5 "></div>
+                        </div>
+                        <div class="mt-4">
+                            <div class="d-flex justify-content-between mb-2 pb-1">
+                                <span class="small">Total Tags</span>
+                                <span class="fw-bold badge bg-light rounded-pill text-dark">{{ total_tags }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2 pb-1">
+                                <span class="small">Total Flag</span>
+                                <span class="fw-bold badge bg-danger rounded-pill text-light">{{ total_flags }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 pb-3 pt-0 text-center">
+                        <a href="{% url 'indicators' %}" class="btn btn-sm btn-outline-dark w-100 stretched-link fw-bold">Manage</a>
                     </div>
                 </div>
             </div>

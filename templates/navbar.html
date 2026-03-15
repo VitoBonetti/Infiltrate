@@ -87,7 +87,7 @@
                             <li><a class="dropdown-item {% if 'configuration_settings' in request.resolver_match.url_name %}select-menu-bg fw-bold{% endif %}" href="{% url 'configuration_settings' %}"><i class="bi bi-gear {% if 'configuration_settings' not in request.resolver_match.url_name %}text-warning{% endif %}"></i> Configurations</a></li>
                             <li><a class="dropdown-item {% if 'indicator' in request.resolver_match.url_name %}select-menu-bg fw-bold{% endif %}" href="{% url 'indicators' %}"><i class="bi bi-palette2 {% if 'indicator' not in request.resolver_match.url_name %}text-success{% endif %}"></i> Indicators</a></li>
                             <li><hr class="dropdown-divider border-dark"></li>
-                            <li><a class="dropdown-item {% if 'accounts' in request.resolver_match.url_name %}select-menu-bg fw-bold{% endif %}" href="{% url 'users' %}"><i class="bi bi-people-fill {% if 'accounts' not in request.resolver_match.url_name %}text-primary{% endif %}"></i> Users</a></li>
+                            <li><a class="dropdown-item {% if 'mng_user' in request.resolver_match.url_name %}select-menu-bg fw-bold{% endif %}" href="{% url 'mng_users' %}"><i class="bi bi-people-fill {% if 'mng_user' not in request.resolver_match.url_name %}text-primary{% endif %}"></i> Users</a></li>
                         </ul>
                     </li>
                 {% endif %}

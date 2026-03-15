@@ -210,6 +210,10 @@ class ManagementHomeView(ManagementAccessMixin, TemplateView):
             ctx['active_assets'] = Asset.objects.filter(asset_status='Active').count()
             ctx['kpi_assets'] = Asset.objects.filter(is_kpi=True).count()
 
+            # Indicators Stats
+            ctx['total_tags'] = Tags.objects.count()
+            ctx['total_flags'] = Flags.objects.count()
+
         except Exception:
             # Fallback if tables don't exist yet
             ctx["active_regions_count"] = 0
@@ -225,6 +229,8 @@ class ManagementHomeView(ManagementAccessMixin, TemplateView):
             ctx['total_assets'] = 0
             ctx['active_assets'] = 0
             ctx['kpi_assets'] = 0
+            ctx['total_tags'] = 0
+            ctx['total_flags'] = 0
 
         return ctx
 
@@ -1060,6 +1066,8 @@ class UserListView(ManagementAccessMixin, View):
             'sort_by': sort_by,
             'total_count': User.objects.count(),
             'admin_count': User.objects.filter(is_platform_admin=True).count(),
+            'god_count': User.objects.filter(is_superuser=True).count(),
+            'pentester_count': User.objects.filter(is_pentester=True).count(),
             'can_write': admin_can_write(request.user),
             'can_delete': admin_can_delete(request.user),
         }
@@ -1070,19 +1078,19 @@ class UserListView(ManagementAccessMixin, View):
         if "delete_id" in request.POST:
             if not admin_can_delete(request.user):
                 messages.error(request, "Permission denied.")
-                return redirect("users")
+                return redirect("mng_users")
             try:
                 user_obj = get_object_or_404(User, id=request.POST["delete_id"])
 
                 # SECURITY: Cannot delete yourself
                 if user_obj == request.user:
                     messages.error(request, "You cannot delete your own account.")
-                    return redirect("users")
+                    return redirect("mng_users")
 
                 # SECURITY: Admin cannot delete GOD or Admin
                 if (user_obj.is_superuser or user_obj.is_platform_admin) and not request.user.is_superuser:
                     messages.error(request, "Permission denied. Only GODs can delete global administrators.")
-                    return redirect("users")
+                    return redirect("mng_users")
 
                 user_obj.delete()
                 messages.success(request, f"User '{user_obj.email}' deleted.")
@@ -1097,7 +1105,7 @@ class UserListView(ManagementAccessMixin, View):
         if action and selected_ids:
             if not admin_can_write(request.user):
                 messages.error(request, "Permission denied.")
-                return redirect("users")
+                return redirect("mng_users")
 
             # Get base queryset
             users_to_modify = User.objects.filter(id__in=selected_ids)
@@ -1123,7 +1131,7 @@ class UserListView(ManagementAccessMixin, View):
                 count = users_to_modify.update(is_active=False)
                 messages.success(request, f"Deactivated {count} users.")
 
-        return redirect("users")
+        return redirect("mng_users")
 
 
 class UserFormView(ManagementAccessMixin, View):
@@ -1132,7 +1140,7 @@ class UserFormView(ManagementAccessMixin, View):
     def get(self, request, *args, **kwargs):
         if not admin_can_write(request.user):
             messages.error(request, "Permission denied.")
-            return redirect("users")
+            return redirect("mng_users")
 
         user_id = request.GET.get("user_id")
         if user_id:
@@ -1141,7 +1149,7 @@ class UserFormView(ManagementAccessMixin, View):
             # SECURITY: Admin cannot load the edit page for a GOD or Admin
             if (user_obj.is_superuser or user_obj.is_platform_admin) and not request.user.is_superuser:
                 messages.error(request, "Permission denied. Only GODs can edit global administrators.")
-                return redirect("users")
+                return redirect("mng_users")
 
             form = UserForm(instance=user_obj)
             editing = True
@@ -1154,7 +1162,7 @@ class UserFormView(ManagementAccessMixin, View):
     def post(self, request, *args, **kwargs):
         if not admin_can_write(request.user):
             messages.error(request, "Permission denied.")
-            return redirect("users")
+            return redirect("mng_users")
 
         user_id = request.GET.get("user_id")
         if user_id:
@@ -1163,7 +1171,7 @@ class UserFormView(ManagementAccessMixin, View):
             # SECURITY: Admin cannot submit edits for a GOD or Admin (prevents malicious POST requests)
             if (user_obj.is_superuser or user_obj.is_platform_admin) and not request.user.is_superuser:
                 messages.error(request, "Permission denied. Only GODs can edit global administrators.")
-                return redirect("users")
+                return redirect("mng_users")
 
             form = UserForm(request.POST, instance=user_obj)
         else:
@@ -1187,7 +1195,7 @@ class UserFormView(ManagementAccessMixin, View):
             new_user.save()
 
             messages.success(request, "User saved successfully.")
-            return redirect("users")
+            return redirect("mng_users")
 
         for field, errors in form.errors.items():
             for error in errors:
@@ -1219,11 +1227,11 @@ class UserRoleView(ManagementAccessMixin, View):
         if "global_role" in request.POST:
             if not request.user.is_superuser:
                 messages.error(request, "Only GOD (Superusers) can manage global platform roles.")
-                return redirect("user_roles", user_id=user_id)
+                return redirect("mng_user_roles", user_id=user_id)
             # 1. Handle Global Role Management (Promote/Demote GODs and Admins)
             if target_user == request.user:
                 messages.error(request, "You cannot modify your own global role. Ask another GOD to do it.")
-                return redirect("user_roles", user_id=user_id)
+                return redirect("mng_user_roles", user_id=user_id)
 
             new_role = request.POST.get("global_role")
             if new_role == "god":
@@ -1248,28 +1256,28 @@ class UserRoleView(ManagementAccessMixin, View):
                 messages.success(request, f"{target_user.username} is now a Standard User.")
 
             target_user.save()
-            return redirect("user_roles", user_id=user_id)
+            return redirect("mng_user_roles", user_id=user_id)
 
         # 2. SECURITY CHECK: Admins cannot modify scopes of GODs or other Admins
         if (target_user.is_superuser or target_user.is_platform_admin) and not request.user.is_superuser:
             messages.error(request, "Permission Denied. Only GODs can modify the roles of global administrators.")
-            return redirect("user_roles", user_id=user_id)
+            return redirect("mng_user_roles", user_id=user_id)
 
         # 3. Handle Delete Assignment
         if "delete_assignment_id" in request.POST:
             if not admin_can_delete(request.user):
                 messages.error(request, "Permission denied.")
-                return redirect("user_roles", user_id=user_id)
+                return redirect("mng_user_roles", user_id=user_id)
 
             assignment = get_object_or_404(RoleAssignment, id=request.POST["delete_assignment_id"], user=target_user)
             assignment.delete()
             messages.success(request, "Role assignment removed.")
-            return redirect("user_roles", user_id=user_id)
+            return redirect("mng_user_roles", user_id=user_id)
 
         # 4. Handle Add Assignment
         if not admin_can_write(request.user):
             messages.error(request, "Permission denied.")
-            return redirect("user_roles", user_id=user_id)
+            return redirect("mng_user_roles", user_id=user_id)
 
         form = RoleAssignmentForm(request.POST, user=target_user)
         if form.is_valid():
@@ -1288,7 +1296,7 @@ class UserRoleView(ManagementAccessMixin, View):
                     else:
                         messages.error(request, f"{field.title()}: {error}")
 
-        return redirect("user_roles", user_id=user_id)
+        return redirect("mng_user_roles", user_id=user_id)
 
 
 class AssetListView(ManagementAccessMixin, View):

@@ -1,8 +1,80 @@
 {% extends 'base.html' %}
+{% load widget_tweaks %}
 {% load static %}
 {% block title %}{{ block.super }} {% if editing %}Edit User{% else %}Add User{% endif %} {% endblock title %}
 {% block custom_script %}{% endblock custom_script %}
 {% block content %}
     {% include 'management/helpers/sub_navbar.html' %}
+    <div class="container-fluid">
+        <div class="row mt-3 mb-3 align-items-center">
+            <div class="col-auto">
+                <a href="{% url 'mng_users' %}" class="btn btn-outline-dark rounded-circle d-flex align-items-center justify-content-center p-0" style="width: 32px; height: 32px;" title="Back to Management">
+                    <i class="bi bi-arrow-left fs-5"></i>
+                </a>
+            </div>
+            <div class="col">
+                <div class="h5 fw-bold">
+                    {% if editing %}Edit User{% else %}Add User{% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <div class="card shadow border-0 border-start {% if editing %}border-danger{% else %}border-dark{% endif %} border-5 management-home-card-bg">
+                    <div class="card-body p-4">
+                        <form method="post" action="{% if editing %}?user_id={{ user_id }}{% endif %}">
+                            {% csrf_token %}
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold">Email Address *</label>
+                                    {% render_field form.email class="form-control form-control-sm border-1 border-dark" placeholder="user@example.com" %}
+                                    <div class="text-danger small mt-1">{{ form.email.errors|striptags }}</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold">First Name</label>
+                                    {% render_field form.first_name class="form-control form-control-sm border-1 border-dark" %}
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold">Last Name</label>
+                                    {% render_field form.last_name class="form-control form-control-sm border-1 border-dark" %}
+                                </div>
+                            </div>
+
+                            <div class="row mb-4 p-3 rounded mt-4">
+                                <div class="col-md-4">
+                                    <div class="form-check form-switch fs-5">
+                                        {% render_field form.is_active class="form-check-input border-dark" %}
+                                        <label class="form-check-label fs-6 mt-1 fw-bold">Active Account</label>
+                                    </div>
+                                    <small class="text-muted d-block ms-5">Can log in to the platform.</small>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check form-switch fs-5">
+                                        {% render_field form.is_platform_admin class="form-check-input border-dark" %}
+                                        <label class="form-check-label fs-6 mt-1 text-danger fw-bold">Platform Admin</label>
+                                    </div>
+                                    <small class="text-muted d-block ms-5">Has full Platform access globally.</small>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check form-switch fs-5">
+                                        {% render_field form.is_pentester class="form-check-input border-dark" %}
+                                        <label class="form-check-label fs-6 mt-1 text-success fw-bold">Platform Pentester</label>
+                                    </div>
+                                    <small class="text-muted d-block ms-5">Has full Platform access to test and vulnerabilities.</small>
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-end gap-2 mt-4">
+                                <a href="{% url 'mng_users' %}" class="btn btn-outline-danger">Cancel</a>
+                                <button type="submit" class="btn btn-outline-dark px-4">
+                                    {% if editing %}Save Changes{% else %}Create User{% endif %}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock content %}
 {% block custom_bottom_script %}{% endblock custom_bottom_script %}
