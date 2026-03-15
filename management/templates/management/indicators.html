@@ -96,6 +96,33 @@
                         Flags Alert List
                     </div>
                     <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-striped table-light table-hover align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 40%">Entity Type</th>
+                                        <th style="width: 40%">Name</th>
+                                        <th style="width: 20%" class="text-center">Flag</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in flagged_entities_list %}
+                                        <tr>
+                                            <td>{{ item.entity }}</td>
+                                            <td>{{ item.name }}</td>
+                                            <td class="text-center">
+                                                <span class="badge" style="background-color: {{ item.bg_color }} !important; color: {{ item.text_color }} !important;">
+                                                    {{ item.flag.categories }} </span>
+                                            </td>
+                                        </tr>
+                                    {% empty %}
+                                        <tr>
+                                            <td colspan="3">No flagged entities found.</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>

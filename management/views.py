@@ -257,6 +257,61 @@ class IndicatorsView(ManagementAccessMixin, TemplateView):
 
         context['flag_cat_cards'] = flag_cat_cards
 
+        # fetch all flags and prefetch their reverse relationships
+        all_flags = Flags.objects.prefetch_related(
+            'region_flags', 'market_flags', 'org_flags', 'asset_flags'
+        ).all()
+
+        flagged_entities = []
+
+        # iterate through the flags and build the flat list
+        for flag in all_flags:
+
+            text_color, bg_color = Flags.CATEGORY_COLORS.get(flag.categories, ('#0C2B4E', '#FFFFFF'))
+
+            # Regions
+            for region in flag.region_flags.all():
+                flagged_entities.append({
+                    'entity': 'Region',
+                    'name': region.region,
+                    'flag': flag,
+                    'text_color': text_color,
+                    'bg_color': bg_color,
+                })
+
+            # Markets
+            for market in flag.market_flags.all():
+                flagged_entities.append({
+                    'entity': 'Market',
+                    'name': market.market,
+                    'flag': flag,
+                    'text_color': text_color,
+                    'bg_color': bg_color,
+                })
+
+            # Organizations
+            for org in flag.org_flags.all():
+                flagged_entities.append({
+                    'entity': 'Organization',
+                    'name': org.name,
+                    'flag': flag,
+                    'text_color': text_color,
+                    'bg_color': bg_color,
+                })
+
+            # Assets
+            for asset in flag.asset_flags.all():
+                flagged_entities.append({
+                    'entity': 'Asset',
+                    'name': asset.name,
+                    'flag': flag,
+                    'text_color': text_color,
+                    'bg_color': bg_color,
+                })
+
+        # 3. Add it to the context
+        context['flagged_entities_list'] = flagged_entities
+
         return context
 
 
