@@ -13,10 +13,23 @@
             </div>
             <div class="col">
                 <div class="h5 fw-bold">
-                    Tests Requests
+                    {% if editing %}Edit Tests{% else %}Add Tests Requests{% endif %}
                 </div>
             </div>
         </div>
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <div class="card shadow border-0 border-start {% if editing %}border-danger{% else %}border-dark{% endif %} border-5 management-home-card-bg">
+                    <div class="card-body p-4">
+                        <form method="post" action="{% if editing %}?test_id={{ test_id }}{% endif %}">
+                            {% csrf_token %}
+                            {% if form.non_field_errors %}
+                                <div class="alert alert-danger py-2 mb-3">
+                                    {% for error in form.non_field_errors %}
+                                        <p class="mb-0 fw-bold"><i class="bi bi-exclamation-triangle-fill"></i> {{ error }}</p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
     </div>
 {% endblock content %}
 {% block custom_bottom_script %}

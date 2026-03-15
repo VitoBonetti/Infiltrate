@@ -280,7 +280,8 @@ class IndicatorsView(ManagementAccessMixin, TemplateView):
                 flagged_entities.append({
                     'entity': 'Region',
                     'name': region.region,
-                    'flag': flag,
+                    'flag': flag.flag,
+                    'categories': flag.categories,
                     'text_color': text_color,
                     'bg_color': bg_color,
                 })
@@ -290,7 +291,8 @@ class IndicatorsView(ManagementAccessMixin, TemplateView):
                 flagged_entities.append({
                     'entity': 'Market',
                     'name': market.market,
-                    'flag': flag,
+                    'flag':  flag.flag,
+                    'categories': flag.categories,
                     'text_color': text_color,
                     'bg_color': bg_color,
                 })
@@ -300,7 +302,8 @@ class IndicatorsView(ManagementAccessMixin, TemplateView):
                 flagged_entities.append({
                     'entity': 'Organization',
                     'name': org.name,
-                    'flag': flag,
+                    'flag':  flag.flag,
+                    'categories': flag.categories,
                     'text_color': text_color,
                     'bg_color': bg_color,
                 })
@@ -310,7 +313,8 @@ class IndicatorsView(ManagementAccessMixin, TemplateView):
                 flagged_entities.append({
                     'entity': 'Asset',
                     'name': asset.name,
-                    'flag': flag,
+                    'flag':  flag.flag,
+                    'categories': flag.categories,
                     'text_color': text_color,
                     'bg_color': bg_color,
                 })
