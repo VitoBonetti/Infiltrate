@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{{ block.super }} Tests Request {% endblock title %}
+{% block custom_script %}{% endblock custom_script %}
+{% block content %}
+    {% include 'management/helpers/sub_navbar.html' %}
+    <div class="container-fluid">
+        <div class="row mt-3 mb-3 align-items-center">
+            <div class="col-auto">
+                <a href="{% url 'dashboard' %}" class="btn btn-outline-dark rounded-circle d-flex align-items-center justify-content-center p-0" style="width: 32px; height: 32px;" title="Back to Management">
+                    <i class="bi bi-arrow-left fs-5"></i>
+                </a>
+            </div>
+            <div class="col">
+                <div class="h5 fw-bold">
+                    Tests Requests
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock content %}
+{% block custom_bottom_script %}
+    {{ block.super }}
+    <script src="{% static 'js/bulk_select_all.js' %}"></script>
+{% endblock custom_bottom_script %}

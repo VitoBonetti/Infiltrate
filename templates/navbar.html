@@ -36,8 +36,25 @@
                 <li class="nav-item">
                     <a class="nav-link" href="#">Assets</a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">Tests</a>
+                <li class="nav-item dropdown me-3">
+                    <a class="nav-link dropdown-toggle {% if 'tests_user' in request.path %}select-menu-text fw-bold{% endif %}" href="#" id="managementDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Tests
+                    </a>
+                    <ul class="dropdown-menu border-dark shadow mt-2" aria-labelledby="managementDropdown">
+                        <li>
+                            <a class="dropdown-item {% if request.resolver_match.url_name == 'tests_user_list' %}select-menu-bg fw-bold{% endif %}" href="{% url 'tests_user_list' %}">
+                                Tests List
+                            </a>
+                        </li>
+                        {% if is_god or is_admin or is_pentester or has_manager  %}
+                            <li><hr class="dropdown-divider border-dark"></li>
+                            <li>
+                                <a class="dropdown-item {% if 'tests_user_form' in request.resolver_match.url_name %}select-menu-bg fw-bold{% endif %}" href="{% url 'tests_user_form' %}">
+                                    Test Requests
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="#">Vulnerabilities</a>
@@ -70,7 +87,7 @@
                             <li><a class="dropdown-item {% if 'configuration_settings' in request.resolver_match.url_name %}select-menu-bg fw-bold{% endif %}" href="{% url 'configuration_settings' %}"><i class="bi bi-gear {% if 'configuration_settings' not in request.resolver_match.url_name %}text-warning{% endif %}"></i> Configurations</a></li>
                             <li><a class="dropdown-item {% if 'indicator' in request.resolver_match.url_name %}select-menu-bg fw-bold{% endif %}" href="{% url 'indicators' %}"><i class="bi bi-palette2 {% if 'indicator' not in request.resolver_match.url_name %}text-success{% endif %}"></i> Indicators</a></li>
                             <li><hr class="dropdown-divider border-dark"></li>
-                            <li><a class="dropdown-item {% if 'user' in request.resolver_match.url_name %}select-menu-bg fw-bold{% endif %}" href="{% url 'users' %}"><i class="bi bi-people-fill {% if 'user' not in request.resolver_match.url_name %}text-primary{% endif %}"></i> Users</a></li>
+                            <li><a class="dropdown-item {% if 'accounts' in request.resolver_match.url_name %}select-menu-bg fw-bold{% endif %}" href="{% url 'users' %}"><i class="bi bi-people-fill {% if 'accounts' not in request.resolver_match.url_name %}text-primary{% endif %}"></i> Users</a></li>
                         </ul>
                     </li>
                 {% endif %}

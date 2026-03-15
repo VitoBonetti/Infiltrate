@@ -1,7 +1,5 @@
 from django.urls import path
-
-from indicators.models import Flags
-from .views import (
+from management.views import (
     ManagementHomeView,
     RegionView,
     MarketListView,
