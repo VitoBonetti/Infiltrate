@@ -3,10 +3,17 @@ from django.db import models
 import uuid as _uuid
 from indicators.models import Tags, Flags
 
+SERVICE_TYPE_CHOICES = [
+    ('Adversary Simulation', 'Adversary Simulation'),
+    ('White Box', 'White Box'),
+    ('Black Box', 'Black Box'),
+]
+
 class Test(models.Model):
     uuid = models.UUIDField(default=_uuid.uuid4, editable=False, unique=True, primary_key=True)
     name = models.CharField(max_length=200)
     assets = models.ManyToManyField("assets.Asset", related_name="tests", blank=True)
+    service = models.CharField(choices=SERVICE_TYPE_CHOICES, max_length=50, default='Black Box')
     start_date = models.DateField(null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)
     tags = models.ManyToManyField(Tags, blank=True, related_name='test_tags')
