@@ -535,7 +535,7 @@ class FlagsView(ManagementAccessMixin, View):
             })
 
         # Pagination
-        paginator = Paginator(queryset, 5)  # 25 items per page
+        paginator = Paginator(queryset, 25)  # 25 items per page
         page_number = request.GET.get('page')
         page_obj = paginator.get_page(page_number)
 
@@ -1344,7 +1344,7 @@ class AssetListView(ManagementAccessMixin, View):
         else:
             queryset = queryset.order_by('name')
 
-        paginator = Paginator(queryset, 500)
+        paginator = Paginator(queryset, 25)
         page_number = request.GET.get('page')
         page_obj = paginator.get_page(page_number)
 

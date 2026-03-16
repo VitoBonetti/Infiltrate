@@ -1,9 +1,10 @@
 from django.views.generic import TemplateView, CreateView, UpdateView
 from django.views import View
+from django.core.paginator import Paginator
 from tests.forms import TestForm
 from tests.models import Test
 from rbac.models import RoleAssignment, ROLE_MANAGER
-from rbac.policy import is_god, is_admin, is_pentester
+from rbac.policy import is_god, is_admin, is_pentester, can_view
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.contrib import messages
@@ -36,10 +37,10 @@ class TestRequestView(View):
         test_id = request.GET.get("test_id")
         if test_id:
             test = get_object_or_404(Test, uuid=test_id)
-            form = TestForm(instance=test)
+            form = TestForm(instance=test, user=request.user)
             editing = True
         else:
-            form = TestForm()
+            form = TestForm(user=request.user)
             editing = False
 
         return render(request, self.template_name, {'form': form, 'editing': editing, 'test_id': test_id})
@@ -52,9 +53,9 @@ class TestRequestView(View):
         test_id = request.GET.get("test_id")
         if test_id:
             test = get_object_or_404(Test, uuid=test_id)
-            form = TestForm(request.POST, instance=test)
+            form = TestForm(request.POST, instance=test, user=request.user)
         else:
-            form = TestForm(request.POST)
+            form = TestForm(request.POST, user=request.user)
 
         if form.is_valid():
             test_instance = form.save(commit=False)
@@ -79,13 +80,51 @@ class TestRequestView(View):
         return render(request, self.template_name, {'form': form, 'editing': bool(test_id), 'test_id': test_id})
 
 
+class TestsListView(View):
+    template_name = "tests/tests_user_list.html"
+
+    def get(self, request, *args, **kwargs):
+        all_tests = Test.objects.all()
+        allowed_test_ids = [test.uuid for test in all_tests if can_view(request.user, test)]
+
+        queryset = Test.objects.filter(uuid__in=allowed_test_ids)
+
+        tests_count = queryset.count()
+
+        search_query = request.GET.get('search', '')
+        if search_query:
+            queryset = queryset.filter(name__icontains=search_query)
+
+        sort_by = request.GET.get('sort', 'name')
+        valid_sorts = ['name', '-name', 'service', '-service', 'status', '-status',]
+        if sort_by in valid_sorts:
+            queryset = queryset.order_by(sort_by)
+        else:
+            queryset = queryset.order_by('name')
+
+        paginator = Paginator(queryset, 25)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+
+        context = {
+            "page_obj": page_obj,
+            "tests_count": tests_count,
+            "search_query": search_query,  # Pass search back to template
+            "sort_by": sort_by,  # Pass sort back to template
+        }
+        return render(request, self.template_name, context)
+
 class TestListView(TemplateView):
     template_name = "tests/tests_user_list.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        context['tests_count'] = Test.objects.count()
-        context['tests'] = Test.objects.all()
+        # Retrieve all tests and filter using the RBAC policy
+        all_tests = Test.objects.all()
+        user_tests = [test for test in all_tests if can_view(self.request.user, test)]
+
+        context['tests_count'] = len(user_tests)
+        context['tests'] = user_tests
 
         return context

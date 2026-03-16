@@ -1,6 +1,6 @@
 from django.contrib.contenttypes.models import ContentType
 from rbac.models import RoleAssignment, ROLE_REGIONAL_VIEWER, ROLE_MANAGER, ROLE_OPERATOR
-from rbac.scoping import get_region_for_scope_any, get_market_for_scope_any
+from rbac.scoping import get_region_for_scope_any, get_market_for_scope_any, scope_kind
 from markets.models import Market
 from regions.models import Regions
 from organizations.models import Organization
@@ -20,8 +20,13 @@ def is_pentester(user) -> bool:
 
 
 def _has_assignment(user, role, obj) -> bool:
-    ct = ContentType.objects.get_for_model(obj.__class__)
-    return RoleAssignment.objects.filter(user=user, role=role, scope_content_type=ct, scope_object_id=obj.id).exists()
+    kind = scope_kind(obj)  # Returns "region", "market", "organization", etc.
+    kwargs = {
+        "user": user,
+        "role": role,
+        kind: obj  # Let Django's ORM handle the object reference automatically
+    }
+    return RoleAssignment.objects.filter(**kwargs).exists()
 
 
 def user_is_manager_of_market(user, market: Market) -> bool:

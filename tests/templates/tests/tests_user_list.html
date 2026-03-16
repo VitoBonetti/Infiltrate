@@ -49,21 +49,29 @@
                     <table class="table table-sm table-striped table-hover align-middle mb-0" style="min-width: 800px;">
                         <thead>
                             <tr>
-                                <th>Name</th>
-                                <th>Asset</th>
-                                <th>Service</th>
-                                <th>Request Date</th>
-                                <th>Status</th>
+                                <th class="custom-card-header">Name</th>
+                                <th class="custom-card-header" >Asset</th>
+                                <th class="custom-card-header" >Service</th>
+                                <th class="custom-card-header" >Request Date</th>
+                                <th class="custom-card-header" >Status</th>
+                                <th class="custom-card-header text-end pe-3">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for test in tests %}
+                            {% for test in page_obj %}
                                 <tr>
                                     <td>{{ test.name }}</td>
                                     <td>{% for asset in test.assets.all %}{{ asset.name }}{% endfor %}</td>
                                     <td>{{ test.service }}</td>
                                     <td>{{ test.proposal_date }}</td>
                                     <td>{{ test.status }}</td>
+                                    <td class="text-end pe-3">
+                                        {% if is_god or is_admin or is_pentester %}
+                                            <a href="{% url 'tests_user_form' %}?test_id={{ test.uuid }}" class="btn btn-sm btn-outline-dark">
+                                                <i class="bi bi-pencil"></i> Edit
+                                            </a>
+                                        {% endif %}
+                                    </td>
                                 </tr>
                             {% empty %}
                                 <tr><td colspan="5">Nothing to see here</td></tr>

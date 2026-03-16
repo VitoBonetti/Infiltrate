@@ -159,7 +159,7 @@ class RoleAssignment(models.Model):
                 except Exception:
                     continue
 
-                if ra_region.id != new_region.id:
+                if ra_region.pk != new_region.pk:
                     continue
 
                 # conflict if one is manager and the other is operator in same region

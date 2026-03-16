@@ -34,8 +34,9 @@ class TestForm(ModelForm):
                 market_ids = manager_assignments.values_list('market_id', flat=True)
 
                 self.fields['assets'].queryset = Asset.objects.filter(
-                    organization__market_id__in=market_ids
+                    organization__market_id__in=market_ids,
+                    is_pentest_queue=True
                 )
             else:
                 # Global roles see all assets
-                self.fields['assets'].queryset = Asset.objects.all()
+                self.fields['assets'].queryset = Asset.objects.filter(is_pentest_queue=True)
