@@ -1,16 +1,19 @@
-from django import forms
+from django.forms import DateInput, SelectMultiple, ModelForm
 from tests.models import Test
 from assets.models import Asset
 from rbac.models import RoleAssignment, ROLE_MANAGER
 
 
-class TestForm(forms.ModelForm):
+class TestForm(ModelForm):
     class Meta:
         model = Test
         # Excluded automated fields: start_date, end_date, quarter, requested_by
-        fields = ['name', 'assets', 'service', 'proposal_date', 'ritm', 'status', 'tags', 'flags', 'description']
+        fields = ['assets', 'service', 'proposal_date', 'ritm', 'status', 'tags', 'flags', 'description']
         widgets = {
-            'proposal_date': forms.DateInput(attrs={'type': 'date'}),
+            'assets': SelectMultiple(),
+            'proposal_date': DateInput(attrs={'type': 'date'}),
+            'tags': SelectMultiple(),
+            'flags': SelectMultiple(),
         }
 
     def __init__(self, *args, **kwargs):

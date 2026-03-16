@@ -1,8 +1,19 @@
 {% extends 'base.html' %}
+{% load widget_tweaks %}
 {% load static %}
+{% load rbac_tags %}
 {% block title %}{{ block.super }} Tests Request {% endblock title %}
-{% block custom_script %}{% endblock custom_script %}
+{% block custom_script %}
+    <link rel="stylesheet" href="{% static 'css/select2.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/select2-bootstrap-5-theme.min.css' %}">
+{% endblock custom_script %}
 {% block content %}
+    {% gp_is_god as is_god %}
+    {% gp_is_admin as is_admin %}
+    {% gp_is_pentester as is_pentester %}
+    {% gp_has_scoped_role 'REGIONAL_VIEWER' as has_rv %}
+    {% gp_has_scoped_role 'MANAGER' as has_manager %}
+    {% gp_has_scoped_role 'OPERATOR' as has_operator %}
     {% include 'management/helpers/sub_navbar.html' %}
     <div class="container-fluid">
         <div class="row mt-3 mb-3 align-items-center">
@@ -30,9 +41,92 @@
                                     {% endfor %}
                                 </div>
                             {% endif %}
+                            <div class="row mb-3">
+                                <div class="col-12"><div class="h6 fw-bold mb-3 text-uppercase tracking-wider border-bottom pb-2">1. Test Request</div></div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold">Asset(s) *</label>
+                                    {% if form.assets.errors %}
+                                        {% render_field form.assets class="form-select form-select-sm select2-multiple border-1 border-dark is-invalid" %}
+                                        <div class="text-danger small mt-1">{{ form.assets.errors|striptags }}</div>
+                                    {% else %}
+                                        {% render_field form.assets class="form-select form-select-sm select2-multiple border-1 border-dark" %}
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold">Service *</label>
+                                    {% render_field form.service class="form-select form-select-sm border-dark border-1 rounded" %}
+                                    <div class="text-danger small mt-1">{{ form.service.errors|striptags }}</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold">Proposal Date *</label>
+                                    {% render_field form.proposal_date class="form-control form-control-sm border-dark border-1 rounded" %}
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label fw-bold">RITM</label>
+                                    {% render_field form.ritm class="form-control form-control-sm border-dark border-1 rounded" %}
+                                </div>
+                                <div class="col-md-8">
+                                    <label class="form-label fw-bold">Description</label>
+                                    {% render_field form.description class="form-control form-control-sm border-dark border-1 rounded" %}
+                                </div>
+                                {% if is_god or is_pentester or is_admin %}
+                                    <div class="col-md-2">
+                                        <label class="form-label fw-bold">Status</label>
+                                        {% render_field form.status class="form-select form-select-sm border-dark border-1 rounded"%}
+                                    </div>
+                                {% else %}
+                                    <div class="col-md-2"></div>
+                                {% endif %}
+                                <div class="col-12"><div class="h6 fw-bold mb-3 text-uppercase tracking-wider border-bottom pb-2 mt-3">2. Platform Indicators</div></div>
+                                <div class="col-md-3 mb-3">
+                                    <label class="form-label fw-bold">Tags</label>
+                                    {% if form.tags.errors %}
+                                        {% render_field form.tags class="form-select form-select-sm select2-multiple border-1 border-dark is-invalid" %}
+                                        <div class="text-danger small mt-1">{{ form.tags.errors|striptags }}</div>
+                                    {% else %}
+                                        {% render_field form.tags class="form-select form-select-sm select2-multiple border-1 border-dark" %}
+                                    {% endif %}
+                                </div>
+                                {% if is_god or is_pentester or is_admin %}
+                                     <div class="col-md-3 mb-3">
+                                        <label class="form-label fw-bold">Flags</label>
+                                        {% if form.flags.errors %}
+                                            {% render_field form.flags class="form-select form-select-sm select2-multiple border-1 border-dark is-invalid" %}
+                                            <div class="text-danger small mt-1">{{ form.flags.errors|striptags }}</div>
+                                        {% else %}
+                                            {% render_field form.flags class="form-select form-select-sm select2-multiple border-1 border-dark" %}
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                                <a href="{% url 'tests_user_list' %}" class="btn btn-outline-danger">Cancel</a>
+                                <button type="submit" class="btn btn-outline-dark px-4">{% if editing %}Save Changes{% else %}Request Test{% endif %}</button>
+                                {% if not editing %}
+                                    <button type="submit" name="save_and_add" class="btn btn-outline-success">Save & Add Another</button>
+                                {% endif %}
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 {% endblock content %}
 {% block custom_bottom_script %}
     {{ block.super }}
     <script src="{% static 'js/bulk_select_all.js' %}"></script>
+    <script src="{% static 'js/jquery-3.7.1.min.js' %}"></script>
+    <script src="{% static 'js/select2.min.js' %}"></script>
+    <script>
+        $(document).ready(function() {
+            // Initialize Select2 on your multiselect fields
+            $('.select2-multiple').select2({
+                theme: 'bootstrap-5', // Makes it look like Bootstrap
+                placeholder: "Select items...",
+                allowClear: true,
+                width: '100%' // Ensures it fills the Bootstrap column
+            });
+        });
+    </script>
 {% endblock custom_bottom_script %}

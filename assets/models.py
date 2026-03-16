@@ -178,4 +178,4 @@ class Asset(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.organization} / {self.name}"
+        return f"{self.name} ({self.organization.market.code})"

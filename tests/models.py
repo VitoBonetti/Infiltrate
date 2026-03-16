@@ -2,8 +2,11 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
+from django.db.models.signals import m2m_changed
+from django.dispatch import receiver
 import uuid as _uuid
 from indicators.models import Tags, Flags
+
 
 SERVICE_TYPE_CHOICES = [
     ('Adversary Simulation', 'Adversary Simulation'),
@@ -24,11 +27,11 @@ TEST_STATUS_CHOICES = [
 
 class Test(models.Model):
     uuid = models.UUIDField(default=_uuid.uuid4, editable=False, unique=True, primary_key=True)
-    name = models.CharField(max_length=200)
+    name = models.CharField(blank=True)
     assets = models.ManyToManyField("assets.Asset", related_name="tests", blank=True)
     service = models.CharField(choices=SERVICE_TYPE_CHOICES, max_length=50, default='Black Box')
     status = models.CharField(choices=TEST_STATUS_CHOICES, max_length=50, default='Requested')
-    ritm = models.CharField(max_length=100, default='RITM00000000',
+    ritm = models.CharField(max_length=100, blank=True,
                             help_text="Attach a specific RITM or leave as standard.")
     requested_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -78,3 +81,19 @@ class Test(models.Model):
             self.end_date = timezone.now().date()
 
         super().save(*args, **kwargs)
+
+
+@receiver(m2m_changed, sender=Test.assets.through)
+def update_test_name_on_assets_change(sender, instance, action, **kwargs):
+    if action in ["post_add", "post_remove", "post_clear"]:
+        current_year = str(timezone.now().year)
+        asset_names = " - ".join([asset.name for asset in instance.assets.all()])
+
+        if not asset_names:
+            asset_names = "No_Assets"
+
+        new_name = f"{current_year} - {asset_names} - {instance.service}"
+
+        if instance.name != new_name:
+            instance.name = new_name
+            instance.save(update_fields=['name'])

@@ -79,24 +79,6 @@ class TestRequestView(View):
         return render(request, self.template_name, {'form': form, 'editing': bool(test_id), 'test_id': test_id})
 
 
-
-class TestFormView(CreateView):
-    model = Test
-    form_class = TestForm
-    template_name = "tests/tests_user_form.html"
-    success_url = reverse_lazy('tests_user_list')
-
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['user'] = self.request.user
-        return kwargs
-
-    def form_valid(self, form):
-        # Attach the user who requested the test before saving to the DB
-        form.instance.requested_by = self.request.user
-        return super().form_valid(form)
-
-
 class TestListView(TemplateView):
     template_name = "tests/tests_user_list.html"
 
