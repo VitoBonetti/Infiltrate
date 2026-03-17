@@ -7,7 +7,7 @@ class CustomUserAdmin(UserAdmin):
     fieldsets = UserAdmin.fieldsets + (
         ("GostPillar Roles", {"fields": ("is_platform_admin",)}),
     )
-    list_display = ("username", "email", "is_superuser", "is_platform_admin", "is_pentester", "is_staff", "is_active")
+    list_display = ("username", "email", "is_superuser", "is_platform_admin", "is_pentester", "is_tester", "is_staff", "is_active")
 
 @admin.register(Invite)
 class InviteAdmin(admin.ModelAdmin):

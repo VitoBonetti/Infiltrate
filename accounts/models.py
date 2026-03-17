@@ -10,8 +10,8 @@ class User(AbstractUser):
     id = models.UUIDField(default=_uuid.uuid4, primary_key=True, editable=False)
     # "Admin" (not Django admin site "staff")
     is_platform_admin = models.BooleanField(default=False)
-
     is_pentester = models.BooleanField(default=False)
+    is_tester = models.BooleanField(default=False)
 
     def clean(self):
         # GOD vs Admin exclusivity
@@ -24,14 +24,17 @@ class User(AbstractUser):
             self.is_platform_admin = False
             self.is_pentester = False
             self.is_staff = True
+            self.is_tester = True
         elif self.is_platform_admin:
             self.is_superuser = False
             self.is_pentester = False
             self.is_staff = True
+            self.is_tester = False
         elif self.is_pentester:
             self.is_superuser = False
             self.is_platform_admin = False
             self.is_staff = False
+            self.is_tester = True
 
         super().save(*args, **kwargs)
 

@@ -53,7 +53,7 @@ class OrganizationForm(ModelForm):
 class UserForm(ModelForm):
     class Meta:
         model = User
-        fields = ['email', 'first_name', 'last_name', 'is_active', 'is_platform_admin', 'is_pentester']
+        fields = ['email', 'first_name', 'last_name', 'is_active', 'is_platform_admin', 'is_pentester', "is_tester"]
 
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)

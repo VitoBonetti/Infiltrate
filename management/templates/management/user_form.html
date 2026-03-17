@@ -41,26 +41,32 @@
                             </div>
 
                             <div class="row mb-4 p-3 rounded mt-4">
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <div class="form-check form-switch fs-5">
                                         {% render_field form.is_active class="form-check-input border-dark" %}
                                         <label class="form-check-label fs-6 mt-1 fw-bold">Active Account</label>
                                     </div>
                                     <small class="text-muted d-block ms-5">Can log in to the platform.</small>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <div class="form-check form-switch fs-5">
                                         {% render_field form.is_platform_admin class="form-check-input border-dark" %}
                                         <label class="form-check-label fs-6 mt-1 text-danger fw-bold">Platform Admin</label>
                                     </div>
                                     <small class="text-muted d-block ms-5">Has full Platform access globally.</small>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <div class="form-check form-switch fs-5">
                                         {% render_field form.is_pentester class="form-check-input border-dark" %}
-                                        <label class="form-check-label fs-6 mt-1 text-success fw-bold">Platform Pentester</label>
+                                        <label class="form-check-label fs-6 mt-1 text-secondary-emphasis fw-bold">Platform Pentester</label>
                                     </div>
                                     <small class="text-muted d-block ms-5">Has full Platform access to test and vulnerabilities.</small>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-check form-switch fs-5">
+                                        {% render_field form.is_tester class="form-check-input border-dark" %}
+                                        <label class="form-check-label fs-6 mt-1 text-success fw-bold">Tester</label>
+                                    </div>
                                 </div>
                             </div>
 
