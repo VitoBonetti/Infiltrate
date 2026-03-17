@@ -2,16 +2,16 @@
     <a class="flex-sm-fill text-sm-center nav-link {% if request.resolver_match.url_name == 'management' %}active sub-navbar-selected text-dark fw-bold shadow-sm{% else %}text-light{% endif %}" href="{% url 'management' %}">
         <i class="bi bi-speedometer2 me-1"></i> Overview
     </a>
-    <a class="flex-sm-fill text-sm-center nav-link {% if 'region' in request.resolver_match.url_name %}active sub-navbar-selected text-dark fw-bold shadow-sm{% else %}text-light{% endif %}" href="{% url 'regions' %}">
+    <a class="flex-sm-fill text-sm-center nav-link {% if 'mng_region' in request.resolver_match.url_name %}active sub-navbar-selected text-dark fw-bold shadow-sm{% else %}text-light{% endif %}" href="{% url 'mng_regions' %}">
         <i class="bi bi-globe2 me-1"></i> Regions
     </a>
-    <a class="flex-sm-fill text-sm-center nav-link {% if 'market' in request.resolver_match.url_name %}active sub-navbar-selected text-dark fw-bold shadow-sm{% else %}text-light{% endif %}" href="{% url 'markets' %}">
+    <a class="flex-sm-fill text-sm-center nav-link {% if 'mng_market' in request.resolver_match.url_name %}active sub-navbar-selected text-dark fw-bold shadow-sm{% else %}text-light{% endif %}" href="{% url 'mng_markets' %}">
         <i class="bi bi-shop me-1"></i> Markets
     </a>
-    <a class="flex-sm-fill text-sm-center nav-link {% if 'organization' in request.resolver_match.url_name %}active sub-navbar-selected text-dark fw-bold shadow-sm{% else %}text-light{% endif %}" href="{% url 'organizations' %}">
+    <a class="flex-sm-fill text-sm-center nav-link {% if 'mng_organization' in request.resolver_match.url_name %}active sub-navbar-selected text-dark fw-bold shadow-sm{% else %}text-light{% endif %}" href="{% url 'mng_organizations' %}">
         <i class="bi bi-building me-1"></i> Organizations
     </a>
-    <a class="flex-sm-fill text-sm-center nav-link {% if 'asset' in request.resolver_match.url_name %}active sub-navbar-selected text-dark fw-bold shadow-sm{% else %}text-light{% endif %}" href="{% url 'assets' %}">
+    <a class="flex-sm-fill text-sm-center nav-link {% if 'mng_asset' in request.resolver_match.url_name %}active sub-navbar-selected text-dark fw-bold shadow-sm{% else %}text-light{% endif %}" href="{% url 'mng_assets' %}">
         <i class="bi bi-pc-display me-1"></i> Assets
     </a>
     <a class="flex-sm-fill text-sm-center nav-link {% if 'configuration_settings' in request.resolver_match.url_name %}active sub-navbar-selected text-dark fw-bold shadow-sm{% else %}text-light{% endif %}" href="{% url 'configuration_settings' %}">

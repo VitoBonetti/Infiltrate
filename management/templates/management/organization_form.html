@@ -11,7 +11,7 @@
     <div class="container-fluid">
         <div class="row mt-3 mb-3 align-items-center">
             <div class="col-auto">
-                <a href="{% url 'organizations' %}" class="btn btn-outline-dark rounded-circle d-flex align-items-center justify-content-center p-0" style="width: 32px; height: 32px;" title="Back to Management">
+                <a href="{% url 'mng_organizations' %}" class="btn btn-outline-dark rounded-circle d-flex align-items-center justify-content-center p-0" style="width: 32px; height: 32px;" title="Back to Management">
                     <i class="bi bi-arrow-left fs-5"></i>
                 </a>
             </div>
@@ -91,7 +91,7 @@
                                         <div class="col-md-6"></div>
                                         <div class="col-md-6">
                                             <div class="d-flex justify-content-end gap-2 mt-4">
-                                                <a href="{% url 'organizations' %}" class="btn btn-outline-danger">Cancel</a>
+                                                <a href="{% url 'mng_organizations' %}" class="btn btn-outline-danger">Cancel</a>
                                                 <button type="submit" class="btn btn-outline-dark">{% if editing %}Save Changes{% else %}Create Organization{% endif %}</button>
                                                 {% if not editing %}
                                                     <button type="submit" name="save_and_add" class="btn btn-outline-success">Save and Add Another</button>

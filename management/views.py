@@ -182,7 +182,7 @@ class ConfigurationUpdateView(ManagementAccessMixin, UpdateView):
 
 
 class ManagementHomeView(ManagementAccessMixin, TemplateView):
-    template_name = "management/home.html"
+    template_name = "management/default.html"
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -190,11 +190,14 @@ class ManagementHomeView(ManagementAccessMixin, TemplateView):
             # Regions Stats
             ctx["active_regions_count"] = Regions.objects.filter(active=True).count()
             ctx["total_regions_count"] = Regions.objects.count()
+            ctx["active_regions_percent"] = (ctx['active_regions_count']/ctx['total_regions_count']) * 100
 
             # Markets Stats
             ctx["total_markets_count"] = Market.objects.count()
             ctx["active_markets_count"] = Market.objects.filter(active=True).count()
             ctx["key_markets_count"] = Market.objects.filter(key_market=True).count()
+            ctx["active_markets_percent"] = (ctx['active_markets_count']/ctx['total_markets_count']) * 100
+            ctx["key_markets_percent"] = (ctx['key_markets_count']/ctx['active_markets_count']) * 100
 
             # Organizations Stats
             ctx["total_orgs_count"] = Organization.objects.count()
@@ -203,18 +206,42 @@ class ManagementHomeView(ManagementAccessMixin, TemplateView):
             ctx["total_users_count"] = User.objects.count()
             ctx["admin_users_count"] = User.objects.filter(is_platform_admin=True).count()
             ctx["god_user_count"] = User.objects.filter(is_superuser=True).count()
-            ctx["scoped_role"] = ctx["total_users_count"] - (ctx["admin_users_count"] + ctx["god_user_count"])
+            ctx["pentester_user_count"] = User.objects.filter(is_pentester=True).count()
+            ctx["scoped_role"] = ctx["total_users_count"] - (ctx["admin_users_count"] + ctx["god_user_count"] + ctx["pentester_user_count"])
+            ctx["global_role"] = ctx["admin_users_count"] + ctx["god_user_count"] + ctx["pentester_user_count"]
+            ctx['global_role_percent'] = ((ctx["admin_users_count"] + ctx["god_user_count"] + ctx["pentester_user_count"])/ctx["total_users_count"]) * 100
+            ctx['scoped_role_percent'] = (ctx['scoped_role']/ctx['total_users_count']) * 100
 
             # Asset Stats
             ctx['total_assets'] = Asset.objects.count()
             ctx['active_assets'] = Asset.objects.filter(asset_status='Active').count()
             ctx['kpi_assets'] = Asset.objects.filter(is_kpi=True).count()
+            ctx['pentest_queue_assets'] = Asset.objects.filter(is_pentest_queue=True).count()
+            ctx['active_assets_percent'] = (ctx['active_assets']/ctx['active_assets']) * 100
+            ctx['kpi_assets_percent'] = (ctx['kpi_assets']/ctx['active_assets']) * 100
+            ctx['pentest_queue_assets_percent'] = (ctx['pentest_queue_assets']/ctx['active_assets']) * 100
 
             # Indicators Stats
             ctx['total_tags'] = Tags.objects.count()
             ctx['total_flags'] = Flags.objects.count()
 
-        except Exception:
+            all_flags = Flags.objects.prefetch_related(
+                'region_flags', 'market_flags', 'org_flags', 'asset_flags'
+            ).all()
+            flagged_entities = []
+            for flag in all_flags:
+                for region in flag.region_flags.all():
+                    flagged_entities.append(flag.flag)
+                for market in flag.market_flags.all():
+                    flagged_entities.append(flag.flag)
+                for org in flag.org_flags.all():
+                    flagged_entities.append(flag.flag)
+                for asset in flag.asset_flags.all():
+                    flagged_entities.append(flag.flag)
+            ctx['total_alerts'] = len(flagged_entities)
+
+        except Exception as e:
+            print(e)
             # Fallback if tables don't exist yet
             ctx["active_regions_count"] = 0
             ctx["total_regions_count"] = 0
@@ -226,58 +253,143 @@ class ManagementHomeView(ManagementAccessMixin, TemplateView):
             ctx["admin_users_count"] = 0
             ctx["god_user_count"] = 0
             ctx["scoped_role"] = 0
+            ctx["global_role"] = 0
             ctx['total_assets'] = 0
             ctx['active_assets'] = 0
             ctx['kpi_assets'] = 0
+            ctx['pentest_queue_assets'] = 0
             ctx['total_tags'] = 0
             ctx['total_flags'] = 0
+            ctx["active_regions_percent"] = 0
+            ctx["active_markets_percent"] = 0
+            ctx["key_markets_percent"] = 0
+            ctx['global_role_percent'] = 0
+            ctx['scoped_role_percent'] = 0
+            ctx['kpi_assets_percent'] = 0
+            ctx['active_assets_percent'] = 0
+            ctx['kpi_assets_percent'] = 0
+            ctx['pentest_queue_assets_percent'] = 0
+            ctx['total_alerts'] = 0
 
         return ctx
 
 
-class IndicatorsView(ManagementAccessMixin, TemplateView):
+# class IndicatorsView(ManagementAccessMixin, TemplateView):
+#     template_name = "management/indicators.html"
+#
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#
+#         # querying categories the actual counts
+#         flag_cat_count = dict(Flags.objects.values_list('categories').annotate(count=Count('categories')))
+#
+#         # Build the list for the card in the indicators.html
+#         flag_cat_cards = []
+#         for choice, _ in Flags.CATEGORIES_CHOICES:
+#             count = flag_cat_count.get(choice, 0)
+#
+#             # getting background color for the border of the card
+#             _, bg_color = Flags.CATEGORY_COLORS.get(choice, ('#0C2B4E', '#FFFFFF'))
+#
+#             flag_cat_cards.append({
+#                 'name': choice,
+#                 'count': count,
+#                 'bg_color': bg_color,
+#             })
+#
+#         context['flag_cat_cards'] = flag_cat_cards
+#
+#         # fetch all flags and prefetch their reverse relationships
+#         all_flags = Flags.objects.prefetch_related(
+#             'region_flags', 'market_flags', 'org_flags', 'asset_flags'
+#         ).all()
+#
+#         flagged_entities = []
+#
+#         # iterate through the flags and build the flat list
+#         for flag in all_flags:
+#
+#             text_color, bg_color = Flags.CATEGORY_COLORS.get(flag.categories, ('#0C2B4E', '#FFFFFF'))
+#
+#             # Regions
+#             for region in flag.region_flags.all():
+#                 flagged_entities.append({
+#                     'entity': 'Region',
+#                     'name': region.region,
+#                     'flag': flag.flag,
+#                     'categories': flag.categories,
+#                     'text_color': text_color,
+#                     'bg_color': bg_color,
+#                 })
+#
+#             # Markets
+#             for market in flag.market_flags.all():
+#                 flagged_entities.append({
+#                     'entity': 'Market',
+#                     'name': market.market,
+#                     'flag':  flag.flag,
+#                     'categories': flag.categories,
+#                     'text_color': text_color,
+#                     'bg_color': bg_color,
+#                 })
+#
+#             # Organizations
+#             for org in flag.org_flags.all():
+#                 flagged_entities.append({
+#                     'entity': 'Organization',
+#                     'name': org.name,
+#                     'flag':  flag.flag,
+#                     'categories': flag.categories,
+#                     'text_color': text_color,
+#                     'bg_color': bg_color,
+#                 })
+#
+#             # Assets
+#             for asset in flag.asset_flags.all():
+#                 flagged_entities.append({
+#                     'entity': 'Asset',
+#                     'name': asset.name,
+#                     'flag':  flag.flag,
+#                     'categories': flag.categories,
+#                     'text_color': text_color,
+#                     'bg_color': bg_color,
+#                 })
+#
+#         # 3. Add it to the context
+#         context['flag_alert_list'] = flagged_entities
+#         context['flag_alert_count'] = len(flagged_entities)
+#
+#         return context
+class IndicatorsView(ManagementAccessMixin, View):
     template_name = "management/indicators.html"
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        context['tags_count'] = Tags.objects.count()
-        context['flags_count'] = Flags.objects.count()
-
-        # querying categories the actual counts
+    def get(self, request, *args, **kwargs):
+        # 1. Categories Cards (Same as before)
         flag_cat_count = dict(Flags.objects.values_list('categories').annotate(count=Count('categories')))
-
-        # Build the list for the card in the indicators.html
         flag_cat_cards = []
         for choice, _ in Flags.CATEGORIES_CHOICES:
             count = flag_cat_count.get(choice, 0)
-
-            # getting background color for the border of the card
             _, bg_color = Flags.CATEGORY_COLORS.get(choice, ('#0C2B4E', '#FFFFFF'))
-
             flag_cat_cards.append({
                 'name': choice,
                 'count': count,
                 'bg_color': bg_color,
             })
 
-        context['flag_cat_cards'] = flag_cat_cards
-
-        # fetch all flags and prefetch their reverse relationships
+        # 2. Fetch and Build the Flat List
         all_flags = Flags.objects.prefetch_related(
             'region_flags', 'market_flags', 'org_flags', 'asset_flags'
         ).all()
 
         flagged_entities = []
 
-        # iterate through the flags and build the flat list
         for flag in all_flags:
-
             text_color, bg_color = Flags.CATEGORY_COLORS.get(flag.categories, ('#0C2B4E', '#FFFFFF'))
 
-            # Regions
+            # Notice the new 'id' field being added below. This is crucial for bulk actions!
             for region in flag.region_flags.all():
                 flagged_entities.append({
+                    'id': f"{flag.uuid}|Region|{region.uuid}",
                     'entity': 'Region',
                     'name': region.region,
                     'flag': flag.flag,
@@ -285,45 +397,125 @@ class IndicatorsView(ManagementAccessMixin, TemplateView):
                     'text_color': text_color,
                     'bg_color': bg_color,
                 })
-
-            # Markets
             for market in flag.market_flags.all():
                 flagged_entities.append({
+                    'id': f"{flag.uuid}|Market|{market.uuid}",
                     'entity': 'Market',
                     'name': market.market,
-                    'flag':  flag.flag,
+                    'flag': flag.flag,
                     'categories': flag.categories,
                     'text_color': text_color,
                     'bg_color': bg_color,
                 })
-
-            # Organizations
             for org in flag.org_flags.all():
                 flagged_entities.append({
+                    'id': f"{flag.uuid}|Organization|{org.uuid}",
                     'entity': 'Organization',
                     'name': org.name,
-                    'flag':  flag.flag,
+                    'flag': flag.flag,
                     'categories': flag.categories,
                     'text_color': text_color,
                     'bg_color': bg_color,
                 })
-
-            # Assets
             for asset in flag.asset_flags.all():
                 flagged_entities.append({
+                    'id': f"{flag.uuid}|Asset|{asset.uuid}",
                     'entity': 'Asset',
                     'name': asset.name,
-                    'flag':  flag.flag,
+                    'flag': flag.flag,
                     'categories': flag.categories,
                     'text_color': text_color,
                     'bg_color': bg_color,
                 })
 
-        # 3. Add it to the context
-        context['flagged_entities_list'] = flagged_entities
+        # 3. Apply Search Filtering (using Python list comprehensions)
+        search_query = request.GET.get('search', '').lower()
+        if search_query:
+            flagged_entities = [
+                item for item in flagged_entities
+                if search_query in item['name'].lower() or search_query in item['flag'].lower()
+            ]
 
-        return context
+        # 4. Apply Dropdown Filters
+        entity_filter = request.GET.get('entity', '')
+        if entity_filter:
+            flagged_entities = [item for item in flagged_entities if item['entity'] == entity_filter]
 
+        category_filter = request.GET.get('category', '')
+        if category_filter:
+            flagged_entities = [item for item in flagged_entities if item['categories'] == category_filter]
+
+        # 5. Apply Sorting
+        sort_by = request.GET.get('sort', 'name')
+        valid_sort_keys = ['entity', 'name', 'flag', 'categories']
+
+        sort_key = sort_by.lstrip('-')
+        if sort_key in valid_sort_keys:
+            reverse_sort = sort_by.startswith('-')
+            # Sort dictionaries by the selected key (case-insensitive for strings)
+            flagged_entities.sort(key=lambda x: str(x[sort_key]).lower(), reverse=reverse_sort)
+
+        # 6. Pagination
+        paginator = Paginator(flagged_entities, 25)  # 25 alerts per page
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+
+        context = {
+            'flag_cat_cards': flag_cat_cards,
+            'page_obj': page_obj,  # Using page_obj instead of the raw list for your HTML loop
+            'flag_alert_count': len(flagged_entities),
+
+            # Values for maintaining state in your HTML form inputs
+            'search_query': search_query,
+            'entity_filter': entity_filter,
+            'category_filter': category_filter,
+            'sort_by': sort_by,
+
+            # populate dropdown
+            'category_choices': Flags.CATEGORIES_CHOICES,
+            'entity_choices': ['Region', 'Market', 'Organization', 'Asset'],
+
+            # RBAC
+            'can_write': admin_can_write(request.user),
+            'can_delete': admin_can_delete(request.user),
+        }
+        return render(request, self.template_name, context)
+
+    def post(self, request, *args, **kwargs):
+        action = request.POST.get('action')
+        selected_items = request.POST.getlist('selected_items')
+
+        if action == 'bulk_dismiss' and selected_items:
+            if not admin_can_write(request.user):
+                messages.error(request, "Permission denied. You cannot modify flags.")
+                return redirect('indicators')
+
+            try:
+                count = 0
+                for item in selected_items:
+                    # Split the custom ID string created in the GET method
+                    flag_uuid, entity_type, entity_uuid = item.split('|')
+
+                    # Get the flag instance
+                    flag = Flags.objects.get(uuid=flag_uuid)
+
+                    # Remove the specific relationship using the reverse mapping
+                    if entity_type == 'Region':
+                        flag.region_flags.remove(entity_uuid)
+                    elif entity_type == 'Market':
+                        flag.market_flags.remove(entity_uuid)
+                    elif entity_type == 'Organization':
+                        flag.org_flags.remove(entity_uuid)
+                    elif entity_type == 'Asset':
+                        flag.asset_flags.remove(entity_uuid)
+
+                    count += 1
+
+                messages.success(request, f"Successfully dismissed {count} flag alerts.")
+            except Exception as e:
+                messages.error(request, f"Bulk dismiss failed. Error: {str(e)}")
+
+        return redirect('indicators')
 
 class TagsView(ManagementAccessMixin, View):
     template_name = "management/tags.html"
@@ -571,7 +763,7 @@ class RegionView(ManagementAccessMixin, View):
         if "delete_id" in request.POST:
             if not admin_can_delete(request.user):
                 messages.error(request, "You do not have permission to delete regions.")
-                return redirect("regions")
+                return redirect("mng_regions")
 
             try:
                 region = get_object_or_404(Regions, uuid=request.POST["delete_id"])
@@ -579,7 +771,7 @@ class RegionView(ManagementAccessMixin, View):
                 messages.success(request, "Region deleted successfully.")
             except Exception as e:
                 messages.error(request, f"Could not delete region. Error: {str(e)}")
-            return redirect("regions")
+            return redirect("mng_regions")
 
         # 2. Handle Bulk Actions
         action = request.POST.get('action')
@@ -588,7 +780,7 @@ class RegionView(ManagementAccessMixin, View):
         if action and selected_ids:
             if not admin_can_write(request.user):
                 messages.error(request, "Permission denied.")
-                return redirect("regions")
+                return redirect("mng_regions")
 
             if action == 'bulk_delete':
                 if not admin_can_delete(request.user):
@@ -606,12 +798,12 @@ class RegionView(ManagementAccessMixin, View):
                 count = Regions.objects.filter(uuid__in=selected_ids).update(active=False)
                 messages.success(request, f"Successfully deactivated {count} regions.")
 
-            return redirect("regions")
+            return redirect("mng_regions")
 
         # 3. Handle Create / Update Action
         if not admin_can_write(request.user):
             messages.error(request, "You do not have permission to modify regions.")
-            return redirect("regions")
+            return redirect("mng_regions")
 
         region_id = request.GET.get("region_id")
         if region_id:
@@ -624,7 +816,7 @@ class RegionView(ManagementAccessMixin, View):
             form_region.save()
             msg = "Region updated successfully." if region_id else "Region created successfully."
             messages.success(request, msg)
-            return redirect("regions")
+            return redirect("mng_regions")
 
         for field, errors in form_region.errors.items():
             for error in errors:
@@ -744,7 +936,7 @@ class MarketListView(ManagementAccessMixin, View):
         if "delete_id" in request.POST:
             if not admin_can_delete(request.user):
                 messages.error(request, "You do not have permission to delete markets.")
-                return redirect("markets")
+                return redirect("mng_markets")
             try:
                 market = get_object_or_404(Market, uuid=request.POST["delete_id"])
                 market_name = market.market
@@ -753,7 +945,7 @@ class MarketListView(ManagementAccessMixin, View):
             except Exception as e:
                 messages.error(request, f"Could not delete market. Error: {str(e)}")
 
-            return redirect("markets")
+            return redirect("mng_markets")
 
         action = request.POST.get('action')
         selected_ids = request.POST.getlist('selected_items')
@@ -761,7 +953,7 @@ class MarketListView(ManagementAccessMixin, View):
         if action and selected_ids:
             if not admin_can_write(request.user):
                 messages.error(request, "Permission denied.")
-                return redirect("markets")
+                return redirect("mng_markets")
 
             if action == 'bulk_delete':
                 if not admin_can_delete(request.user):
@@ -785,7 +977,7 @@ class MarketListView(ManagementAccessMixin, View):
                 count = Market.objects.filter(uuid__in=selected_ids).update(key_market=False)
                 messages.success(request, f"Successfully removed Key Market status from {count} markets.")
 
-        return redirect("markets")
+        return redirect("mng_markets")
 
 
 class MarketFormView(ManagementAccessMixin, View):
@@ -794,7 +986,7 @@ class MarketFormView(ManagementAccessMixin, View):
     def get(self, request, *args, **kwargs):
         if not admin_can_write(request.user):
             messages.error(request, "You do not have permission to modify markets.")
-            return redirect("markets")
+            return redirect("mng_markets")
 
         market_id = request.GET.get("market_id")
         if market_id:
@@ -810,7 +1002,7 @@ class MarketFormView(ManagementAccessMixin, View):
     def post(self, request, *args, **kwargs):
         if not admin_can_write(request.user):
             messages.error(request, "You do not have permission to modify markets.")
-            return redirect("markets")
+            return redirect("mng_markets")
 
         market_id = request.GET.get("market_id")
         if market_id:
@@ -830,9 +1022,9 @@ class MarketFormView(ManagementAccessMixin, View):
             messages.success(request, msg)
 
             if 'save_and_add' in request.POST:
-                return redirect("market_form")
+                return redirect("mng_market_form")
             else:
-                return redirect("markets")
+                return redirect("mng_markets")
         else:
             for field, errors in form.errors.items():
                 for error in errors:
@@ -895,7 +1087,7 @@ class OrganizationListView(ManagementAccessMixin, View):
         if "delete_id" in request.POST:
             if not admin_can_delete(request.user):
                 messages.error(request, "Permission denied.")
-                return redirect("organizations")
+                return redirect("mng_organizations")
 
             try:
                 org = get_object_or_404(Organization, uuid=request.POST["delete_id"])
@@ -904,7 +1096,7 @@ class OrganizationListView(ManagementAccessMixin, View):
             except Exception as e:
                 messages.error(request, f"Could not delete organization. Error: {str(e)}")
 
-            return redirect("organizations")
+            return redirect("mng_organizations")
 
         # Handle Bulk Deletion
         action = request.POST.get('action')
@@ -913,7 +1105,7 @@ class OrganizationListView(ManagementAccessMixin, View):
         if action == 'bulk_delete' and selected_ids:
             if not admin_can_delete(request.user):
                 messages.error(request, "Permission denied.")
-                return redirect("organizations")
+                return redirect("mng_organizations")
 
             try:
                 count, _ = Organization.objects.filter(uuid__in=selected_ids).delete()
@@ -921,7 +1113,7 @@ class OrganizationListView(ManagementAccessMixin, View):
             except Exception as e:
                 messages.error(request, f"Bulk delete failed. Error: {str(e)}")
 
-        return redirect("organizations")
+        return redirect("mng_organizations")
 
 
 class OrganizationFormView(ManagementAccessMixin, View):
@@ -930,7 +1122,7 @@ class OrganizationFormView(ManagementAccessMixin, View):
     def get(self, request, *args, **kwargs):
         if not admin_can_write(request.user):
             messages.error(request, "Permission denied.")
-            return redirect("organizations")
+            return redirect("mng_organizations")
 
         org_id = request.GET.get("org_id")
         if org_id:
@@ -946,7 +1138,7 @@ class OrganizationFormView(ManagementAccessMixin, View):
     def post(self, request, *args, **kwargs):
         if not admin_can_write(request.user):
             messages.error(request, "Permission denied.")
-            return redirect("organizations")
+            return redirect("mng_organizations")
 
         submission_type = request.POST.get('submission_type', 'single')
         org_id = request.GET.get("org_id")
@@ -963,8 +1155,8 @@ class OrganizationFormView(ManagementAccessMixin, View):
                 form.save()
                 messages.success(request, "Organization saved successfully.")
                 if 'save_and_add' in request.POST:
-                    return redirect("organization_form")
-                return redirect("organizations")
+                    return redirect("mng_organization_form")
+                return redirect("mng_organizations")
             return render(request, self.template_name, {'form': form, 'editing': bool(org_id), 'org_id': org_id})
 
         # 2. Handle JSON Bulk Submissions
@@ -978,7 +1170,7 @@ class OrganizationFormView(ManagementAccessMixin, View):
                     # SECURE: Check file size before reading into memory (e.g., limit to 2MB)
                     if file.size > 2 * 1024 * 1024:
                         messages.error(request, "JSON file is too large. Maximum size is 2MB.")
-                        return redirect("organization_form")
+                        return redirect("mng_organization_form")
 
                     json_data = json.loads(file.read().decode('utf-8'))
                 else:
@@ -990,13 +1182,13 @@ class OrganizationFormView(ManagementAccessMixin, View):
 
         except json.JSONDecodeError:
             messages.error(request, "Invalid JSON formatting.")
-            return redirect("organization_form")
+            return redirect("mng_organization_form")
         except jsonschema.exceptions.ValidationError as e:
             messages.error(request, f"JSON Schema validation failed: {e.message}")
-            return redirect("organization_form")
+            return redirect("mng_organization_form")
         except Exception as e:
             messages.error(request, f"Error processing file: {str(e)}")
-            return redirect("organization_form")
+            return redirect("mng_organization_form")
 
         # 3. Process the parsed JSON
         if json_data:
@@ -1028,7 +1220,7 @@ class OrganizationFormView(ManagementAccessMixin, View):
                 messages.warning(request,
                                  f"Skipped organizations for unknown market codes: {', '.join(missing_markets)}")
 
-        return redirect("organizations")
+        return redirect("mng_organizations")
 
 
 class UserListView(ManagementAccessMixin, View):
@@ -1377,7 +1569,7 @@ class AssetListView(ManagementAccessMixin, View):
         if "delete_id" in request.POST:
             if not admin_can_delete(request.user):
                 messages.error(request, "Permission denied.")
-                return redirect("assets")
+                return redirect("mng_assets")
 
             asset = get_object_or_404(Asset, uuid=request.POST["delete_id"])
             asset.delete()
@@ -1390,7 +1582,7 @@ class AssetListView(ManagementAccessMixin, View):
             count, _ = Asset.objects.filter(uuid__in=selected_ids).delete()
             messages.success(request, f"Successfully deleted {count} assets.")
 
-        return redirect("assets")
+        return redirect("mng_assets")
 
 
 class AssetFormView(ManagementAccessMixin, View):
@@ -1399,7 +1591,7 @@ class AssetFormView(ManagementAccessMixin, View):
     def get(self, request, *args, **kwargs):
         if not admin_can_write(request.user):
             messages.error(request, "Permission denied.")
-            return redirect("assets")
+            return redirect("mng_assets")
 
         asset_id = request.GET.get("asset_id")
         if asset_id:
@@ -1433,7 +1625,7 @@ class AssetFormView(ManagementAccessMixin, View):
                 messages.success(request, "Asset saved successfully.")
                 if 'save_and_add' in request.POST:
                     return redirect("asset_form")
-                return redirect("assets")
+                return redirect("mng_assets")
             return render(request, self.template_name, {'form': form, 'editing': bool(asset_id), 'asset_id': asset_id})
 
         # 2. Excel Upload Logic
@@ -1441,7 +1633,7 @@ class AssetFormView(ManagementAccessMixin, View):
             excel_file = request.FILES.get('excel_file')
             if not excel_file:
                 messages.error(request, "No file uploaded.")
-                return redirect("asset_form")
+                return redirect("mng_asset_form")
 
             try:
                 validate_file_size(excel_file)
@@ -1449,7 +1641,7 @@ class AssetFormView(ManagementAccessMixin, View):
             except ValidationError as e:
                 # e.messages is a list of error strings from the ValidationError
                 messages.error(request, e.messages[0])
-                return redirect("asset_form")
+                return redirect("mng_asset_form")
 
             try:
                 # save the file to the server disk temporarily because  Django destroys request.FILES as soon as we return the page to the user!
@@ -1465,4 +1657,4 @@ class AssetFormView(ManagementAccessMixin, View):
             except Exception as e:
                 messages.error(request, f"Error starting background process: {str(e)}")
 
-            return redirect("assets")
+            return redirect("mng_assets")

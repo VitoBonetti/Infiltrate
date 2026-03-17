@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{{ block.super }} Management{% endblock title %}
+{% block custom_script %}{% endblock custom_script %}
+{% block content %}
+    {% include 'management/helpers/sub_navbar.html' %}
+    <div class="container-fluid">
+        <div class="row mt-5 mb-2">
+            <div class="col-md-2 mb-4 border-0 border-end border-dark">
+                <div class="h4 fw-bold">Management Menu</div>
+                <ul class="dropdown-menu-sm-start">
+                    <div class="fs-5 mt-3 fw-bold">Platform Management</div>
+                    <li><a class="dropdown-item fs-6" href="{% url 'mng_regions' %}">Regions</a></li>
+                    <li><a class="dropdown-item nav-link" href="{% url 'mng_markets' %}">Markets</a></li>
+                    <li><a class="dropdown-item nav-link" href="{% url 'mng_market_form' %}">Create Markets</a></li>
+                    <li><a class="dropdown-item nav-link" href="{% url 'mng_organizations' %}">Organizations</a></li>
+                    <li><a class="dropdown-item nav-link" href="{% url 'mng_organization_form' %}">Create/Import Organizations</a></li>
+                    <li><a class="dropdown-item nav-link" href="{% url 'mng_assets' %}">Assets</a></li>
+                    <li><a class="dropdown-item nav-link" href="{% url 'mng_asset_form' %}">Create/Import Assets</a></li>
+                    <div class="fs-5 mt-3 fw-bold">Users Administration</div>
+                    <li><a class="dropdown-item nav-link" href="{% url 'mng_users' %}">Users</a></li>
+                    <div class="fs-5 mt-3 fw-bold">Platform Configurations</div>
+                    <li><a class="dropdown-item nav-link" href="{% url 'configuration_settings' %}">Configuration</a></li>
+                    <li><a class="dropdown-item nav-link" href="{% url 'indicators' %}">Indicator Alert</a></li>
+                    <li><a class="dropdown-item nav-link" href="{% url 'indicator_tags' %}">Tags</a></li>
+                    <li><a class="dropdown-item nav-link" href="{% url 'indicator_flags' %}">Flags</a></li>
+                </ul>
+            </div>
+            <div class="col-md-10 mb-4">
+                <div class="h4 fw-bold">Management Stats</div>
+                <hr class="border-1 border-success">
+                <div class="fs-5 mt-3 mb-3 fw-bold">Platform Management</div>
+                <div class="row mb-3">
+                    <div class="col">
+                        <div class="card management-home-card-bg shadow h-100 border-0 border-start border-5 border-success">
+                            <div class="card-header-pills ms-2 p-2 fs-5 fw-bold"><i class="bi bi-globe2"></i> Regions</div>
+                            <div class="card-body">
+                                <div class="small text-muted fst-italic text-center">Total Regions</div>
+                                <div class="fs-4 fw-bold text-center">{{ total_regions_count }}</div>
+                                <hr class="border-1 border-success">
+                                <div class="small text-muted fst-italic text-center mb-2">Active Regions ({{ active_regions_count }})</div>
+                                <div class="progress" role="progressbar" aria-label="Active Region Percents" aria-valuenow="{{ active_regions_count }}" aria-valuemin="0" aria-valuemax="{{ total_regions_count }}">
+                                    <div class="progress-bar progress-bar-striped bg-success progress-bar-animated" style="width: {{ active_regions_percent }}% !important;">{{ active_regions_percent }}%</div>
+                                </div>
+                            </div>
+                            <div class="card-footer bg-transparent border-0 pb-3 pt-0 text-center">
+                                <a href="{% url 'mng_regions' %}" class="btn btn-sm btn-outline-dark w-100 stretched-link fw-bold">Manage Regions</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="card management-home-card-bg shadow h-100 border-0 border-start border-5 border-success">
+                            <div class="card-header-pills ms-2 p-2 fs-5 fw-bold"><i class="bi bi-shop fs-5"></i> Markets</div>
+                            <div class="card-body">
+                                <div class="small text-muted fst-italic text-center">Total Markets</div>
+                                <div class="fs-4 fw-bold text-center">{{ total_markets_count }}</div>
+                                <hr class="border-1 border-success">
+                                <div class="small text-muted fst-italic text-center mb-2">Active Markets ({{ active_markets_count }})</div>
+                                <div class="progress" role="progressbar" aria-label="Active Market Percents" aria-valuenow="{{ active_markets_count }}" aria-valuemin="0" aria-valuemax="{{ total_markets_count }}">
+                                    <div class="progress-bar progress-bar-striped bg-success progress-bar-animated" style="width: {{ active_markets_percent|floatformat:1 }}% !important;">{{ active_markets_percent|floatformat:1 }}%</div>
+                                </div>
+                                <div class="small text-muted fst-italic text-center mt-3 mb-2">Key Markets ({{ key_markets_count }})</div>
+                                <div class="progress" role="progressbar" aria-label="Key Market Percents" aria-valuenow="{{ key_markets_count }}" aria-valuemin="0" aria-valuemax="{{ active_markets_count }}">
+                                    <div class="progress-bar progress-bar-striped bg-warning progress-bar-animated text-dark" style="width: {{ key_markets_percent|floatformat:1 }}% !important;">{{ key_markets_percent|floatformat:1 }}%</div>
+                                </div>
+                            </div>
+                            <div class="card-footer bg-transparent border-0 pb-3 pt-0 text-center">
+                                <a href="{% url 'mng_markets' %}" class="btn btn-sm btn-outline-dark w-100 stretched-link fw-bold">Manage Markets</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="card management-home-card-bg shadow h-100 border-0 border-start border-5 border-success">
+                            <div class="card-header-pills ms-2 p-2 fs-5 fw-bold"><i class="bi bi-building fs-5"></i> Organizations</div>
+                            <div class="card-body">
+                                <div class="small text-muted fst-italic text-center">Total Organizations</div>
+                                <div class="fs-4 fw-bold text-center">{{ total_orgs_count }}</div>
+                                <hr class="border-1 border-success">
+                            </div>
+                            <div class="card-footer bg-transparent border-0 pb-3 pt-0 text-center">
+                                <a href="{% url 'mng_organizations' %}" class="btn btn-sm btn-outline-dark w-100 stretched-link fw-bold">Manage Organizations</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="card management-home-card-bg shadow h-100 border-0 border-start border-5 border-success">
+                            <div class="card-header-pills ms-2 p-2 fs-5 fw-bold"><i class="bi bi-pc-display fs-5"></i> Assets</div>
+                            <div class="card-body">
+                                <div class="small text-muted fst-italic text-center">Total Assets</div>
+                                <div class="fs-4 fw-bold text-center">{{ total_assets }}</div>
+                                <hr class="border-1 border-success">
+                                <div class="small text-muted fst-italic text-center mb-2">Active Assets ({{ active_assets }})</div>
+                                <div class="progress" role="progressbar" aria-label="Active Assets Percents" aria-valuenow="{{ active_assets }}" aria-valuemin="0" aria-valuemax="{{ total_assets }}">
+                                    <div class="progress-bar progress-bar-striped bg-success progress-bar-animated" style="width: {{ active_assets_percent|floatformat:1 }}% !important;">{{ active_assets_percent|floatformat:1 }}%</div>
+                                </div>
+                                <div class="small text-muted fst-italic text-center mt-3 mb-2">KPI Assets ({{ kpi_assets }})</div>
+                                <div class="progress" role="progressbar" aria-label="KPI Assets Percents" aria-valuenow="{{ kpi_assets }}" aria-valuemin="0" aria-valuemax="{{ active_assets }}">
+                                    <div class="progress-bar progress-bar-striped bg-warning progress-bar-animated text-dark" style="width: {{ kpi_assets_percent|floatformat:1 }}% !important;">{{ kpi_assets_percent|floatformat:1 }}%</div>
+                                </div>
+                                <div class="small text-muted fst-italic text-center mt-3 mb-2">Pentest Queue Assets ({{ pentest_queue_assets }})</div>
+                                <div class="progress" role="progressbar" aria-label="KPI Assets Percents" aria-valuenow="{{ pentest_queue_assets }}" aria-valuemin="0" aria-valuemax="{{ active_assets }}">
+                                    <div class="progress-bar progress-bar-striped bg-dark progress-bar-animated" style="width: {{ pentest_queue_assets_percent|floatformat:1 }}% !important;">{{ pentest_queue_assets_percent|floatformat:1 }}%</div>
+                                </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+                <hr class="border-1 border-success">
+                <div class="fs-5 mt-3 mb-3 fw-bold">Users Administration</div><div class="row mb-3">
+                    <div class="col-3">
+                        <div class="card management-home-card-bg shadow h-100 border-0 border-start border-5 border-warning">
+                            <div class="card-header-pills ms-2 p-2 fs-5 fw-bold"><i class="bi bi-people-fill"></i> Users</div>
+                            <div class="card-body">
+                                <div class="small text-muted fst-italic text-center">Total Users</div>
+                                <div class="fs-4 fw-bold text-center">{{ total_users_count }}</div>
+                                <hr class="border-1 border-success">
+                                <div class="small text-muted fst-italic text-center mb-2">Global Role ({{ global_role }})</div>
+                                <div class="progress" role="progressbar" aria-label="Users with global role Percents" aria-valuenow="{{ global_role }}" aria-valuemin="0" aria-valuemax="{{ total_users_count }}">
+                                    <div class="progress-bar progress-bar-striped bg-danger progress-bar-animated" style="width: {{ global_role_percent }}% !important;">{{ global_role_percent }}%</div>
+                                </div>
+                                <div class="small text-muted fst-italic text-center mb-2">Scoped Role ({{ scoped_role }})</div>
+                                <div class="progress" role="progressbar" aria-label="Users with scoped role Percents" aria-valuenow="{{ scoped_role }}" aria-valuemin="0" aria-valuemax="{{ total_users_count }}">
+                                    <div class="progress-bar progress-bar-striped bg-success progress-bar-animated" style="width: {{ scoped_role_percent }}% !important;">{{ scoped_role_percent }}%</div>
+                                </div>
+                            </div>
+                            <div class="card-footer bg-transparent border-0 pb-3 pt-0 text-center">
+                                <a href="{% url 'mng_regions' %}" class="btn btn-sm btn-outline-dark w-100 stretched-link fw-bold">Manage Regions</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <hr class="border-1 border-success">
+                <div class="fs-5 mt-3 mb-3 fw-bold">Platform Configurations</div>
+                <div class="row mb-3">
+                    <div class="col-3">
+                        <div class="card management-home-card-bg shadow h-100 border-0 border-start border-5 border-dark">
+                            <div class="card-header-pills ms-2 p-2 fs-5 fw-bold"><i class="bi bi-building fs-5"></i> Configurations</div>
+                            <div class="card-body">
+                            </div>
+                            <div class="card-footer bg-transparent border-0 pb-3 pt-0 text-center">
+                                <a href="{% url 'configuration_settings' %}" class="btn btn-sm btn-outline-dark w-100 stretched-link fw-bold">Manage Configurations</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="card management-home-card-bg shadow h-100 border-0 border-start border-5 border-dark">
+                            <div class="card-header-pills ms-2 p-2 fs-5 fw-bold"><i class="bi bi-palette2 fs-5"></i> Indicators</div>
+                            <div class="card-body">
+                                <div class="small text-muted fst-italic text-center">Total Alerts</div>
+                                <div class="fs-4 fw-bold text-center">{{ total_alerts }}</div>
+                                <hr class="border-1 border-success">
+                                <div class="small text-muted fst-italic text-center mt-3 mb-2"><i class="bi bi-bookmark-fill"></i> Flags ({{ total_flags }})</div>
+                                <div class="progress" role="progressbar" aria-label="Flags" aria-valuenow="{{ total_flags }}" aria-valuemin="0" aria-valuemax="{{ total_flags }}">
+                                    <div class="progress-bar bg-danger" style="width: 100% !important;">{{ total_flags }}</div>
+                                </div>
+                                <div class="small text-muted fst-italic text-center mt-3 mb-2"><i class="bi bi-tags-fill"></i>  Tags ({{ total_tags }})</div>
+                                <div class="progress" role="progressbar" aria-label="Tags" aria-valuenow="{{ total_tags }}" aria-valuemin="0" aria-valuemax="{{ active_assets }}">
+                                    <div class="progress-bar bg-dark" style="width: 100% !important;">{{ total_tags }}</div>
+                                </div>
+                            </div>
+                            <div class="card-footer bg-transparent border-0 pb-3 pt-0 text-center">
+                                <div class="row">
+                                    <div class="col-4"><a href="{% url 'indicators' %}" class="btn btn-sm btn-outline-dark w-100 fw-bold">Manage Alert</a></div>
+                                    <div class="col-4"><a href="{% url 'indicator_flags' %}" class="btn btn-sm btn-outline-dark w-100 fw-bold">Manage Flags</a></div>
+                                    <div class="col-4"><a href="{% url 'indicator_tags' %}" class="btn btn-sm btn-outline-dark w-100 fw-bold">Manage Tags</a></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock content %}
+{% block custom_bottom_script %}{% endblock custom_bottom_script %}

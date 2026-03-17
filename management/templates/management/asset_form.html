@@ -12,7 +12,7 @@
     <div class="container-fluid">
         <div class="row mt-3 mb-3 align-items-center">
             <div class="col-auto">
-                <a href="{% url 'assets' %}" class="btn btn-outline-dark rounded-circle d-flex align-items-center justify-content-center p-0" style="width: 32px; height: 32px;" title="Back to Management">
+                <a href="{% url 'mng_assets' %}" class="btn btn-outline-dark rounded-circle d-flex align-items-center justify-content-center p-0" style="width: 32px; height: 32px;" title="Back to Management">
                     <i class="bi bi-arrow-left fs-5"></i>
                 </a>
             </div>
@@ -151,7 +151,7 @@
                                         </div>
                                      </div>
                                      <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
-                                        <a href="{% url 'assets' %}" class="btn btn-outline-danger">Cancel</a>
+                                        <a href="{% url 'mng_assets' %}" class="btn btn-outline-danger">Cancel</a>
                                         <button type="submit" class="btn btn-outline-dark px-4">{% if editing %}Save Changes{% else %}Create Asset{% endif %}</button>
                                         {% if not editing %}
                                             <button type="submit" name="save_and_add" class="btn btn-outline-success">Save & Add Another</button>
