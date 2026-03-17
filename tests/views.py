@@ -1,4 +1,3 @@
-from django.views.generic import TemplateView, CreateView, UpdateView
 from django.views import View
 from django.core.paginator import Paginator
 from tests.forms import TestForm
@@ -6,7 +5,7 @@ from tests.models import Test
 from rbac.models import RoleAssignment, ROLE_MANAGER
 from rbac.policy import is_god, is_admin, is_pentester, can_view
 from django.shortcuts import render, redirect, get_object_or_404
-from django.urls import reverse_lazy
+from rbac.management_policy import admin_can_write
 from django.contrib import messages
 
 
@@ -95,6 +94,18 @@ class TestsListView(View):
         if search_query:
             queryset = queryset.filter(name__icontains=search_query)
 
+        service_filter = request.GET.get('service', '')
+        if service_filter:
+            queryset = queryset.filter(service=service_filter)
+
+        status_filter = request.GET.get('status', '')
+        if status_filter:
+            queryset = queryset.filter(status=status_filter)
+
+        quarter_filter = request.GET.get('quarter', '')
+        if quarter_filter:
+            queryset = queryset.filter(quarter=quarter_filter)
+
         sort_by = request.GET.get('sort', 'name')
         valid_sorts = ['name', '-name', 'service', '-service', 'status', '-status',]
         if sort_by in valid_sorts:
@@ -106,25 +117,90 @@ class TestsListView(View):
         page_number = request.GET.get('page')
         page_obj = paginator.get_page(page_number)
 
+        # --- GETTING OPTIONS FOR TEMPLATE DROPDOWNS ---
+        # distinct quarters dynamically from allowed tests ignoring none/blanks
+        available_quarters = Test.objects.filter(uuid__in=allowed_test_ids) \
+            .exclude(quarter__isnull=True) \
+            .exclude(quarter__exact='') \
+            .values_list('quarter', flat=True) \
+            .distinct() \
+            .order_by('quarter')
+
+        # get choices directly from the model fields
+        service_choices = Test._meta.get_field('service').choices
+        status_choices = Test._meta.get_field('status').choices
+
+
         context = {
             "page_obj": page_obj,
             "tests_count": tests_count,
             "search_query": search_query,  # Pass search back to template
-            "sort_by": sort_by,  # Pass sort back to template
+            "sort_by": sort_by,
+            "service_filter": service_filter,
+            "status_filter": status_filter,
+            "quarter_filter": quarter_filter,
+            "available_quarters": available_quarters,
+            "service_choices": service_choices,
+            "status_choices": status_choices,
         }
         return render(request, self.template_name, context)
 
-class TestListView(TemplateView):
-    template_name = "tests/tests_user_list.html"
+    def post(self, request, *args, **kwargs):
+        action = request.POST.get('action')
+        selected_test_ids = request.POST.getlist('selected_items')
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
+        if action and selected_test_ids:
+            # 1. Enforce global role permission
+            if not admin_can_write(request.user):
+                messages.error(request, "Permission denied. Only global administrators can perform bulk actions.")
+                return redirect("tests_list")  # Note: replace "tests_list" with your actual URL name!
 
-        # Retrieve all tests and filter using the RBAC policy
-        all_tests = Test.objects.all()
-        user_tests = [test for test in all_tests if can_view(self.request.user, test)]
+            tests_to_update = Test.objects.filter(uuid__in=selected_test_ids)
 
-        context['tests_count'] = len(user_tests)
-        context['tests'] = user_tests
+            # 2. Handle Status Change
+            if action.startswith('status_'):
+                new_status = action.replace('status_', '')
 
-        return context
+                # Fetch valid choices directly from the model to prevent injection/errors
+                valid_statuses = dict(Test._meta.get_field('status').choices).keys()
+
+                if new_status in valid_statuses:
+                    try:
+                        count = 0
+                        # We need to loop and call .save() instead of .update() so that
+                        # so the start_date and end_date logic in models.py is triggered
+                        for test in tests_to_update:
+                            test.status = new_status
+                            test.save()
+                            count += 1
+
+                        messages.success(request, f"Successfully updated status to '{new_status}' for {count} tests.")
+                    except Exception as e:
+                        messages.error(request, f"Bulk update failed. Error: {str(e)}")
+                else:
+                    messages.error(request, "Invalid status selected.")
+
+            # 3. Handle Service Change
+            elif action.startswith('service_'):
+                new_service = action.replace('service_', '')
+
+                # Fetch valid choices directly from the model
+                valid_services = dict(Test._meta.get_field('service').choices).keys()
+
+                if new_service in valid_services:
+                    try:
+                        count = 0
+                        for test in tests_to_update:
+                            test.service = new_service
+                            test.save()  # Trigger custom model logic
+                            count += 1
+
+                        messages.success(request, f"Successfully updated service to '{new_service}' for {count} tests.")
+                    except Exception as e:
+                        messages.error(request, f"Bulk update failed. Error: {str(e)}")
+                else:
+                    messages.error(request, "Invalid service selected.")
+
+        return redirect("tests_user_list")
+
+

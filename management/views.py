@@ -1100,7 +1100,7 @@ class UserListView(ManagementAccessMixin, View):
                 messages.success(request, f"User '{user_obj.email}' deleted.")
             except Exception as e:
                 messages.error(request, f"Could not delete user. Error: {str(e)}")
-            return redirect("users")
+            return redirect("mng_users")
 
         # 2. Handle Bulk Actions
         action = request.POST.get('action')

@@ -10,7 +10,6 @@
     {% gp_has_scoped_role 'REGIONAL_VIEWER' as has_rv %}
     {% gp_has_scoped_role 'MANAGER' as has_manager %}
     {% gp_has_scoped_role 'OPERATOR' as has_operator %}
-    {% include 'management/helpers/sub_navbar.html' %}
     <div class="container-fluid">
         <div class="row mt-3 mb-3 align-items-center">
             <div class="col-auto">
@@ -43,43 +42,148 @@
             </div>
             <div class="col"></div>
         </div>
+        <div class="card shadow mb-3 border-dark management-home-card-bg">
+            <div class="card-body p-3">
+                <form method="get" class="row g-2 align-items-center">
+                    <div class="col-md-2">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text border-0"><i class="bi bi-search"></i></span>
+                            <input type="text" name="search" class="form-control form-control-sm border-dark" placeholder="Search markets..." value="{{ search_query }}">
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="input-group input-group-sm">
+                            <select name="service" class="form-select form-select-sm border-dark">
+                                <option value="">All Services</option>
+                                {% for value, display_name in service_choices %}
+                                    <option value="{{ value }}" {% if service_filter == value %}selected{% endif %}>
+                                        {{ display_name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="input-group input-group-sm">
+                            <select name="status" class="form-select form-select-sm border-dark">
+                                <option value="">All Statuses</option>
+                                {% for value, display_name in status_choices %}
+                                    <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>
+                                        {{ display_name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="input-group input-group-sm">
+                            <select name="quarter" class="form-select form-select-sm border-dark">
+                                <option value="">All Quarters</option>
+                                {% for quarter in available_quarters %}
+                                    <option value="{{ quarter }}" {% if quarter_filter == quarter %}selected{% endif %}>
+                                        {{ quarter }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <select name="sort" class="form-select form-select-sm border-dark">
+                            <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Name (A-Z)</option>
+                            <option value="-name" {% if sort_by == '-name' %}selected{% endif %}>Name (Z-A)</option>
+                            <option value="service" {% if sort_by == 'service' %}selected{% endif %}>Service (A-Z)</option>
+                            <option value="-service" {% if sort_by == '-service' %}selected{% endif %}>Service (Z-A)</option>
+                            <option value="status" {% if sort_by == 'status' %}selected{% endif %}>Status (A-Z)</option>
+                            <option value="-status" {% if sort_by == '-status' %}selected{% endif %}>Status (Z-A)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-flex gap-2">
+                        <button type="submit" class="btn btn-sm btn-outline-dark fw-bold w-100">Apply</button>
+                        <a href="{% url 'markets' %}" class="btn btn-sm btn-outline-danger" title="Clear Filters"><i class="bi bi-x-lg"></i></a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <div class="card border border-1 border-dark shadow rounded management-home-card-bg">
             <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-sm table-striped table-hover align-middle mb-0" style="min-width: 800px;">
-                        <thead>
-                            <tr>
-                                <th class="custom-card-header">Name</th>
-                                <th class="custom-card-header" >Asset</th>
-                                <th class="custom-card-header" >Service</th>
-                                <th class="custom-card-header" >Request Date</th>
-                                <th class="custom-card-header" >Status</th>
-                                <th class="custom-card-header text-end pe-3">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for test in page_obj %}
+                <form method="post" id="bulk-action-form">
+                    {% csrf_token %}
+                    {% if is_god or is_pentester or is_admin %}
+                        <div class="p-2 border-bottom border-dark d-flex align-items-center gap-2">
+                            <select name="action" class="form-select form-select-sm border-dark" style="width: auto;" required>
+                                <option value="" selected disabled>Bulk Actions...</option>
+                                <optgroup label="Change Status">
+                                    {% for value, display_name in status_choices %}
+                                        <option value="status_{{ value }}">Set Status: {{ display_name }}</option>
+                                    {% endfor %}
+                                </optgroup>
+                                <optgroup label="Change Service">
+                                    {% for value, display_name in service_choices %}
+                                        <option value="service_{{ value }}">Set Service: {{ display_name }}</option>
+                                    {% endfor %}
+                                </optgroup>
+                            </select>
+                            <button type="submit" class="btn btn-sm btn-outline-dark fw-bold bulk-apply-btn" disabled>Apply Action</button>
+                        </div>
+                    {% endif %}
+                    <div class="table-responsive">
+                        <table class="table table-sm table-striped table-hover align-middle mb-0" style="min-width: 800px;">
+                            <thead>
                                 <tr>
-                                    <td>{{ test.name }}</td>
-                                    <td>{% for asset in test.assets.all %}{{ asset.name }}{% endfor %}</td>
-                                    <td>{{ test.service }}</td>
-                                    <td>{{ test.proposal_date }}</td>
-                                    <td>{{ test.status }}</td>
-                                    <td class="text-end pe-3">
-                                        {% if is_god or is_admin or is_pentester %}
-                                            <a href="{% url 'tests_user_form' %}?test_id={{ test.uuid }}" class="btn btn-sm btn-outline-dark">
-                                                <i class="bi bi-pencil"></i> Edit
-                                            </a>
-                                        {% endif %}
-                                    </td>
+                                    {% if is_god or is_pentester or is_admin %}
+                                        <th class="ps-3 custom-card-header" style="width: 2%;">
+                                            <input type="checkbox" id="selectAll" class="form-check-input border-dark">
+                                        </th>
+                                    {% endif %}
+                                    <th class="custom-card-header" style="{% if has_manager or has_rv or has_operator %}width: 22%;{% else %}width: 20%;{% endif %} ">Asset/Name</th>
+                                    <th class="custom-card-header" style="width: 14%;">Service</th>
+                                    <th class="custom-card-header" style="width: 14%;">Status</th>
+                                    <th class="custom-card-header text-center" style="width: 10%;">Quarter</th>
+                                    <th class="custom-card-header text-center" style="width: 15%;">Started</th>
+                                    <th class="custom-card-header text-center" style="width: 15%;">Ended</th>
+                                    <th class="custom-card-header text-end pe-3" style="width: 10%;">Actions</th>
                                 </tr>
-                            {% empty %}
-                                <tr><td colspan="5">Nothing to see here</td></tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody>
+                                {% for test in page_obj %}
+                                    <tr>
+                                        {% if is_god or is_pentester or is_admin %}
+                                            <td class="ps-3">
+                                                <input type="checkbox" name="selected_items" value="{{ test.uuid }}" class="form-check-input item-checkbox border-dark">
+                                            </td>
+                                        {% endif %}
+                                        <td>
+                                            <div class="fw-bold">{{ test.name }}</div>
+                                            <div class="small text-muted fst-italic">
+                                                {% for asset in test.assets.all %}{{ asset.name }}{% endfor %}
+                                            </div>
+                                        </td>
+                                        <td>{{ test.service }}</td>
+                                        <td>{{ test.status }}</td>
+                                        <td class="text-center">{{ test.quarter|default:"—" }}</td>
+                                        <td class="text-center">{{ test.start_date|date:"M d, Y"|default:"—" }}</td>
+                                        <td class="text-center">{{ test.end_date|date:"M d, Y"|default:"—" }}</td>
+                                        <td class="text-end pe-3">
+                                            {% if is_god or is_admin or is_pentester %}
+                                                <a href="{% url 'tests_user_form' %}?test_id={{ test.uuid }}" class="btn btn-sm btn-outline-dark">
+                                                    <i class="bi bi-pencil"></i> Edit
+                                                </a>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr><td {% if has_manager or has_rv or has_operator %} colspan="7" {% else %} colspan="8" {% endif %}>Nothing to see here</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </form>
             </div>
+            {% if page_obj.has_other_pages %}
+                {% include 'management/helpers/pagination.html' %}
+            {% endif %}
+
         </div>
     </div>
 {% endblock content %}
